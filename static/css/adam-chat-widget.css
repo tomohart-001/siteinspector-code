@@ -1,0 +1,614 @@
+/* ADAM Chat Widget Styles */
+
+.adam-chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Toggle Button */
+.adam-chat-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 20px;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.adam-chat-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+}
+
+.adam-avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.adam-avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+    color: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.adam-status-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #4ade80;
+    border: 2px solid white;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.adam-toggle-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.adam-name {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.adam-tagline {
+    font-size: 12px;
+    opacity: 0.9;
+    line-height: 1;
+}
+
+/* Chat Interface States */
+.adam-chat-closed .adam-chat-interface {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+}
+
+.adam-chat-open .adam-chat-toggle {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+}
+
+.adam-chat-minimized .adam-chat-interface {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    height: 200px;
+    width: 400px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.adam-chat-minimized .adam-chat-toggle {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+}
+
+.adam-chat-minimized .adam-messages-container {
+    display: none;
+}
+
+.adam-chat-minimized .adam-avatar-small,
+.adam-chat-open .adam-avatar-small {
+    display: none;
+}
+
+.adam-chat-minimized .adam-message-avatar,
+.adam-chat-open .adam-message-avatar {
+    display: none;
+}
+
+.adam-chat-minimized .adam-message-assistant,
+.adam-chat-open .adam-message-assistant {
+    margin-left: 0;
+}
+
+.adam-chat-minimized .adam-message-assistant .adam-message-content,
+.adam-chat-open .adam-message-assistant .adam-message-content {
+    border-radius: 18px;
+}
+
+/* Chat Interface */
+.adam-chat-interface {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 380px;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Header */
+.adam-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+}
+
+.adam-chat-minimized .adam-chat-header {
+    background: transparent;
+    color: white;
+}
+
+.adam-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.adam-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.adam-avatar-small .adam-avatar-inner {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+}
+
+.adam-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.adam-header-text .adam-name {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.adam-subtitle {
+    font-size: 11px;
+    opacity: 0.9;
+    line-height: 1;
+}
+
+.adam-header-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.adam-control-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.adam-control-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* Messages Area */
+.adam-messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    background: rgba(248, 250, 252, 0.8);
+}
+
+.adam-messages {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 100%;
+}
+
+.adam-message {
+    display: flex;
+    gap: 12px;
+    max-width: 85%;
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.adam-message-user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.adam-message-user .adam-message-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 18px 18px 6px 18px;
+}
+
+.adam-message-assistant .adam-message-content {
+    background: white;
+    color: #1a1a1a;
+    border-radius: 18px 18px 18px 6px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.adam-message-error .adam-message-content {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 18px;
+}
+
+.adam-message-avatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    align-self: flex-end;
+}
+
+.adam-avatar-tiny {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.adam-message-content {
+    padding: 12px 16px;
+    flex: 1;
+    word-wrap: break-word;
+}
+
+.adam-message-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.adam-message-sender {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.adam-message-time {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.adam-message-user .adam-message-time {
+    text-align: right;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.adam-message-text {
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.adam-message-text strong {
+    font-weight: 600;
+}
+
+.adam-message-text em {
+    font-style: italic;
+}
+
+.adam-message-text code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 13px;
+}
+
+/* Typing Indicator */
+.adam-typing-animation {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.adam-typing-animation span {
+    width: 6px;
+    height: 6px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.adam-typing-animation span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.adam-typing-animation span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+    30% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+}
+
+/* Quick Actions */
+.adam-quick-actions {
+    padding: 12px 0 0 0;
+    background: transparent;
+    display: flex;
+    gap: 6px;
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+.adam-chat-minimized .adam-quick-actions {
+    background: transparent;
+    border-top: none;
+}
+
+.adam-quick-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    font-size: 11px;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+}
+
+.adam-quick-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.adam-chat-minimized .adam-quick-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.adam-chat-minimized .adam-quick-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+}
+
+.adam-quick-btn svg {
+    flex-shrink: 0;
+}
+
+/* Input Area */
+.adam-input-area {
+    padding: 20px 20px 16px 20px;
+    background: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0 0 20px 20px;
+}
+
+.adam-chat-minimized .adam-input-area {
+    background: transparent;
+    border-top: none;
+    padding: 8px 20px 8px 20px;
+}
+
+.adam-input-container {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.adam-chat-input {
+    flex: 1;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    min-height: 20px;
+    max-height: 120px;
+    line-height: 1.5;
+    background: rgba(248, 250, 252, 0.5);
+    transition: all 0.2s ease;
+}
+
+.adam-chat-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.adam-chat-minimized .adam-chat-input {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.adam-chat-minimized .adam-chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.adam-chat-minimized .adam-chat-input:focus {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.adam-send-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.adam-send-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.adam-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.adam-chat-minimized .adam-send-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.adam-chat-minimized .adam-send-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+    .adam-chat-widget {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .adam-chat-interface {
+        width: 100%;
+        height: 70vh;
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .adam-chat-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        left: auto;
+        width: auto;
+    }
+
+    .adam-quick-actions {
+        flex-direction: column;
+    }
+
+    .adam-quick-btn {
+        justify-content: center;
+    }
+}
+
+/* Scrollbar Styling */
+.adam-messages-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.adam-messages-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.adam-messages-container::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 2px;
+}
+
+.adam-messages-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.5);
+}

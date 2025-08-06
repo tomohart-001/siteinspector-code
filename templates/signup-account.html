@@ -1,0 +1,471 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Account Type - EngineRoom</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='ER Logo_1749447115584.png') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1e44be 0%, #1e44be 50%, #1e44be 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333333;
+            padding: 20px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #1a202c;
+        }
+
+        .logo .engine {
+            color: #547bf7;
+        }
+
+        .logo .room {
+            color: #1e44be;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+            z-index: 10;
+            position: relative;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 60px 40px 40px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-content {
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .auth-header h1 {
+            margin: 0 0 16px 0;
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #1a202c;
+        }
+
+        .auth-header p {
+            color: #718096;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 8px;
+        }
+
+        .progress-step {
+            width: 30px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: #4f7cff;
+        }
+
+        .progress-step.completed {
+            background: #48bb78;
+        }
+
+        .account-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .account-option {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .account-option:hover {
+            border-color: #4f7cff;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .account-option.selected {
+            border-color: #4f7cff;
+            background: rgba(79, 124, 255, 0.05);
+        }
+
+        .option-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .option-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .option-description {
+            color: #718096;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #4f7cff 0%, #6b8aff 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+        }
+
+        .auth-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #5a85ff 0%, #7694ff 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(79, 124, 255, 0.3);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .auth-error {
+            background: rgba(229, 62, 62, 0.1);
+            color: #e53e3e;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
+            border: 1px solid rgba(229, 62, 62, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+
+            .logo {
+                font-size: 1.3rem;
+            }
+
+            .auth-card {
+                padding: 40px 30px 30px 30px;
+                max-width: 95%;
+                border-radius: 20px;
+            }
+
+            .auth-header h1 {
+                font-size: 2rem;
+            }
+
+            .auth-header p {
+                font-size: 1rem;
+            }
+
+            .account-option {
+                padding: 20px;
+            }
+
+            .option-header {
+                text-align: center;
+            }
+
+            .option-description {
+                text-align: center;
+            }
+
+            .auth-btn {
+                padding: 16px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <span class="engine">Engine</span><span class="room">Room</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="auth-card">
+            <div class="auth-content">
+                <div class="progress-indicator">
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step completed"></div>
+                    <div class="progress-step active"></div>
+                </div>
+
+                <div class="auth-header">
+                    <h1>Choose Account Type</h1>
+                    <p>Select the account type that best fits your immediate needs.</p>
+                </div>
+
+                <form id="accountTypeForm">
+                    <div class="account-options">
+                        <div class="account-option" data-type="individual">
+                            <div class="option-header">
+                                <div class="option-title">Individual</div>
+                            </div>
+                            <div class="option-description">
+                                For independent creators working solo — no sharing or collaboration features included.
+                            </div>
+                        </div>
+
+                        <div class="account-option" data-type="team">
+                            <div class="option-header">
+                                <div class="option-title">Team</div>
+                            </div>
+                            <div class="option-description">
+                                For groups who need to collaborate in real time and share files.
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-btn" id="createAccountBtn" disabled>Create Account</button>
+
+                    <div class="auth-error" id="accountTypeError" style="display: none;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔧 Step 3 page loaded');
+
+        // Get signup data from session storage
+        let signupData = {};
+        try {
+            const rawData = sessionStorage.getItem('signupData');
+            console.log('🔧 Raw session data:', rawData);
+            
+            if (rawData) {
+                signupData = JSON.parse(rawData);
+                console.log('🔧 Parsed signup data:', signupData);
+            } else {
+                console.warn('🔧 No session data found');
+            }
+        } catch (e) {
+            console.error('🔧 Failed to parse signup data:', e);
+        }
+        
+        // Redirect if missing required data
+        if (!signupData.email || !signupData.password || !signupData.username) {
+            console.error('🔧 Missing required signup data:', {
+                hasEmail: !!signupData.email,
+                hasPassword: !!signupData.password,
+                hasUsername: !!signupData.username,
+                data: signupData
+            });
+            
+            // Give user more specific feedback about what's missing
+            if (!signupData.username && signupData.email && signupData.password) {
+                console.log('🔧 Missing username, redirecting to step 2');
+                setTimeout(() => {
+                    window.location.replace('/signup-step2');
+                }, 100);
+            } else {
+                console.log('🔧 Missing email/password, redirecting to login');
+                setTimeout(() => {
+                    window.location.replace('/login');
+                }, 100);
+            }
+            // Exit script execution properly
+            throw new Error('Missing required signup data - redirecting');
+        }
+        
+        console.log('🔧 Step 3 session data validated successfully');
+
+        let selectedAccountType = '';
+
+        function showError(message) {
+            const errorDiv = document.getElementById('accountTypeError');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        function clearError() {
+            const errorDiv = document.getElementById('accountTypeError');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        // Account type selection
+        document.querySelectorAll('.account-option').forEach(option => {
+            option.addEventListener('click', () => {
+                // Remove selected class from all options
+                document.querySelectorAll('.account-option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                option.classList.add('selected');
+                
+                // Store account type
+                selectedAccountType = option.dataset.type;
+                console.log('🔧 Selected account type:', selectedAccountType);
+                
+                // Enable create account button
+                document.getElementById('createAccountBtn').disabled = false;
+                clearError();
+            });
+        });
+
+        // Form submission
+        document.getElementById('accountTypeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const createBtn = document.getElementById('createAccountBtn');
+            
+            clearError();
+
+            if (!selectedAccountType) {
+                showError('Please select an account type');
+                return;
+            }
+
+            // Disable button and show loading state
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating Account...';
+
+            try {
+                // Prepare final signup data
+                const finalSignupData = {
+                    email: signupData.email,
+                    password: signupData.password,
+                    confirm_password: signupData.password,
+                    username: signupData.username,
+                    account_type: selectedAccountType,
+                    subscribe_to_updates: signupData.subscribeToUpdates || false,
+                    invitation_token: signupData.invitationToken || null
+                };
+
+                console.log('🔧 Submitting final signup data:', {
+                    ...finalSignupData,
+                    password: '[HIDDEN]',
+                    confirm_password: '[HIDDEN]'
+                });
+
+                // Submit to signup endpoint
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(finalSignupData)
+                });
+
+                const result = await response.json();
+                console.log('🔧 Signup response:', result);
+
+                if (response.ok && result.success) {
+                    // Clear session storage
+                    sessionStorage.removeItem('signupData');
+                    
+                    // Redirect to dashboard
+                    console.log('🔧 Signup successful, redirecting to dashboard');
+                    window.location.href = result.redirect || '/dashboard';
+                } else {
+                    // Handle error
+                    const errorMessage = result.error || 'Signup failed. Please try again.';
+                    console.error('🔧 Signup error:', errorMessage);
+                    showError(errorMessage);
+                }
+            } catch (error) {
+                console.error('🔧 Signup request error:', error);
+                showError('Unable to create account. Please check your connection and try again.');
+            } finally {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Account';
+            }
+        });
+
+        console.log('🔧 Step 3 initialization complete');
+    </script>
+</body>
+</html>

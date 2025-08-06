@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - EngineRoom</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='ER Logo_1749447115584.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adam-chat-widget.css') }}">
+</head>
+<body>
+    <!-- =============================================================================
+         SIDEBAR NAVIGATION
+         Fixed sidebar with logo, navigation menu, and user profile
+
+         Developer Notes:
+         - Menu items should have corresponding routes in Flask app
+         - Badge numbers should be dynamically updated from backend
+         - User dropdown requires JavaScript for interaction
+         ============================================================================= -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">ER</div>
+            <span class="logo-text">EngineRoom</span>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">Menu</div>
+            <a href="#" class="menu-item active">
+                <div class="icon">📋</div>
+                Projects
+                <div class="badge" id="projectCounter">0</div>
+            </a>
+            <a href="/team" class="menu-item" id="teamMenuItem" style="display: none;">
+                <div class="icon">👥</div>
+                <div class="team-name-wrapper">
+                    <span id="teamMenuText">Team</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">General</div>
+            <a href="/blueprints" class="menu-item">
+                <div class="icon">🗂️</div>
+                Blueprints
+            </a>
+            <a href="/toolshop" class="menu-item">
+                <div class="icon">🛠️</div>
+                Tool Shop
+            </a>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="user-profile">
+            <div class="user-dropdown">
+                <div class="user-dropdown-toggle" id="userProfileDropdownToggle">
+                    <div class="user-avatar" id="sidebarProfilePicture">
+                        {% if user and user.profile_picture and user.profile_picture != '' and user.profile_picture != 'None' %}
+                            <img src="{{ user.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.parentNode.innerHTML='{{ user.username[0].upper() if user and user.username else 'U' }}';">
+                        {% else %}
+                            {{ user.username[0].upper() if user and user.username else 'U' }}
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ user.first_name if user and user.first_name else user.username if user else 'Guest' }}</div>
+                        <div class="user-email">{{ user.email if user and user.email else user.username + '@engineroom.com' if user else 'user@engineroom.com' }}</div>
+                    </div>
+                </div>
+                <div class="user-dropdown-menu" id="userProfileDropdownMenu">
+                    <a href="/dashboard-settings" class="dropdown-item">
+                        <div class="icon">⚙️</div>
+                        <span>Settings</span>
+                    </a>
+                    <form action="/logout" method="POST" style="display: contents;">
+                        <button type="submit" class="dropdown-item logout">
+                            <div class="icon">🚪</div>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================================================
+         MAIN CONTENT AREA
+         Primary dashboard content with fixed headers and scrollable project area
+         ============================================================================= -->
+    <div class="main-content">
+        <!-- Fixed Header Area -->
+        <div class="fixed-header-area">
+            <!-- Search Bar Section -->
+            <div class="search-section" id="searchSection">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" class="search-input" placeholder="Search projects..." id="projectSearch">
+                        <div class="search-icon">🔍</div>
+                    </div>
+                    <a href="#" class="btn btn-primary" onclick="showAddProjectModal()">
+                        Add Project
+                    </a>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="scrollable-content">
+            <!-- Projects Content -->
+            <div class="content-grid">
+                <div class="content-card" id="projectsView">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Projects</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="project-list">
+                            <div class="project-cards-container" id="recentProjectsContainer">
+                                <!-- Recent projects will be populated dynamically from API -->
+                                <div class="no-recent-projects" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 200px; color: #718096; text-align: center;">
+                                    <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">📋</div>
+                                    <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">No recent projects</p>
+                                    <p style="font-size: 0.9rem;">Create your first project to get started</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Files Section -->
+            <div class="content-card" id="allFilesView" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <h3 class="card-title">All Projects</h3>
+                    <div class="card-header-actions">
+                        <select id="fileFilterSelect" class="filter-select" style="display: none;">
+                            <option value="all">All Projects</option>
+                            <option value="my">My Projects</option>
+                            <option value="team">Team Projects</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="files-table-container" id="filesTableContainer">
+                        <table class="files-table" id="filesTable">
+                            <thead>
+                                <tr>
+                                    <th>Project Name</th>
+                                    <th>Client</th>
+                                    <th>Owner</th>
+                                    <th>Last Modified</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="filesTableBody">
+                                <!-- Table rows will be populated by JavaScript -->
+                                <tr class="no-data-row">
+                                    <td colspan="6" class="no-data-message">
+                                        <div class="no-data-content">
+                                            <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">📋</div>
+                                            <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">No projects found</p>
+                                            <p style="font-size: 0.9rem;">Create your first project to get started</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div class="pagination-container" id="paginationContainer" style="display: none;">
+                        <div class="pagination-info">
+                            <span id="paginationInfo">Showing 1-12 of 25 projects</span>
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="prevPageBtn" disabled>
+                                ← Previous
+                            </button>
+                            <div class="pagination-pages" id="paginationPages">
+                                <!-- Page numbers will be inserted here -->
+                            </div>
+                            <button class="pagination-btn" id="nextPageBtn">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================================================================
+         ADD PROJECT MODAL
+         Modal dialog for creating new projects
+
+         Developer Notes:
+         - Form validation is handled in JavaScript
+         - API call to /api/create-project on form submission
+         - Redirects to site-selection page after successful creation
+         - Session storage is used to pass project data between pages
+         ============================================================================= -->
+    <div id="addProjectModal" class="modal" style="display: none;">
+        <div class="modal-content" style="padding: 40px;">
+            <div class="modal-header" style="margin: -40px -40px 40px -40px; padding: 40px 40px 20px 40px;">
+                <h3>New Project Setup</h3>
+                <button class="close-modal-btn" onclick="closeAddProjectModal()">×</button>
+            </div>
+            <!-- Segmented Button - Aligned with form fields -->
+            <div class="segmented-button-container" style="margin-bottom: 40px;">
+                <div class="segmented-button">
+                    <button type="button" class="segment-btn active" id="overviewBtn" onclick="switchProjectTab('overview')">
+                        Project Overview
+                    </button>
+                    <button type="button" class="segment-btn" id="settingsBtn" onclick="switchProjectTab('settings')">
+                        Project Settings
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <!-- Project Form -->
+                <div>
+                    <form id="addProjectForm">
+                        <!-- Project Overview Section -->
+                        <div id="projectOverviewSection" class="project-section active">
+                            <!-- Top section with basic info and map side by side -->
+                            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                                <div style="flex: 1;">
+                                    <div class="form-group">
+                                        <label for="projectName">Project Name *</label>
+                                        <input type="text" id="projectName" name="projectName" required placeholder="Enter project name">
+                                        <span class="error-message" id="projectNameError"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projectNumber">Project Number</label>
+                                        <input type="text" id="projectNumber" name="projectNumber" placeholder="Enter project number">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="clientName">Client Name</label>
+                                        <input type="text" id="clientName" name="clientName" placeholder="Enter client name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="siteAddress">Site Address *</label>
+                                        <div style="display: flex; gap: 8px; align-items: stretch;">
+                                            <input type="text" id="siteAddress" name="siteAddress" required placeholder="Enter site address" oninput="updateProjectSetupMap(this.value)" style="flex: 1; height: 40px; padding: 0 12px; box-sizing: border-box;">
+                                            <button type="button" id="locateAddressBtn" onclick="locateAddress()" style="background: linear-gradient(135deg, #4f7cff 0%, #6b8aff 100%); color: white; border: none; border-radius: 6px; padding: 0 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; min-width: 60px; height: 40px; box-sizing: border-box;" disabled>
+                                                Locate
+                                            </button>
+                                        </div>
+                                        <span class="error-message" id="siteAddressError"></span>
+                                    </div>
+                                </div>
+                                <!-- Map - Only shown in Project Overview -->
+                                <div style="width: 400px; height: 320px; border-radius: 12px; overflow: hidden; flex-shrink: 0;">
+                                    <div id="projectSetupMap" style="width: 100%; height: 100%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Full width site information section below map -->
+                            <div style="width: 100%;">
+                                <div class="form-group">
+                                    <label for="siteInformation">Site Information</label>
+                                    <textarea id="siteInformation" name="siteInformation" placeholder="Enter site information"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Settings Section -->
+                        <div id="projectSettingsSection" class="project-section">
+                            <div class="form-group">
+                                <label for="projectType">Project Type</label>
+                                <select id="projectType" name="projectType">
+                                    <option value="">Select project type</option>
+                                    <option value="residential">Residential</option>
+                                    <option value="commercial">Commercial</option>
+                                    <option value="industrial">Industrial</option>
+                                    <option value="infrastructure">Infrastructure</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="projectUnits">Project Units</label>
+                                <select id="projectUnits" name="projectUnits">
+                                    <option value="">Select measurement system</option>
+                                    <option value="metric">Metric (mm, m, kN)</option>
+                                    <option value="imperial">Imperial (in, ft, lbs)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Project Visibility</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="projectVisibility" value="private" checked>
+                                        <span class="radio-label">Private</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="projectVisibility" value="team">
+                                        <span class="radio-label">Team</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="projectVisibility" value="public">
+                                        <span class="radio-label">Public</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group" id="teamMembersGroup" style="display: none;">
+                                <label for="teamMembers">Team Members</label>
+                                <input type="text" id="teamMembers" name="teamMembers" placeholder="Enter EngineRoom usernames (comma separated)">
+                                <small style="color: #718096; font-size: 0.75rem; margin-top: 4px; display: block;">
+                                    Add other EngineRoom users to collaborate on this project
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()">Cancel</button>                        <button type="submit" class="btn btn-primary">Begin Project</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Setup Modal -->
+    <div id="teamSetupModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="max-width: 500px; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+            <div class="modal-header">
+                <h2>Set Up Your Team</h2>
+                <span class="modal-close" id="closeTeamSetup" style="cursor: pointer; font-size: 1.5rem; color: #718096;">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="teamSetupForm">
+                    <div class="form-group">
+                        <label for="teamName">Organisation or Team Name</label>
+                        <input type="text" id="teamName" name="teamName" required placeholder="Enter your name here">
+                    </div>
+                    <div class="form-group">
+                        <label for="teamSize">Expected Team Size</label>
+                        <select id="teamSize" name="teamSize" required>
+                            <option value="">Select team size</option>
+                            <option value="2-5">2-5 members</option>
+                            <option value="6-10">6-10 members</option>
+                            <option value="11-25">11-25 members</option>
+                            <option value="26+">26+ members</option>
+                        </select>
+                    </div>
+                    <div class="form-buttons" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">Create Team</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Project Confirmation Modal -->
+    <div class="modal-overlay" id="deleteProjectModal" style="display: none;">
+        <div class="modal" style="max-width: 520px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);">
+            <div class="modal-header" style="display: flex; align-items: flex-start; justify-content: space-between; padding: 2rem 2rem 1rem 2rem; border-bottom: none;">
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2);">
+                        <span style="color: #c53030; font-size: 1.5rem;">⚠️</span>
+                    </div>
+                    <div>
+                        <h3 style="color: #1a202c; font-size: 1.375rem; font-weight: 700; margin: 0 0 0.5rem 0; letter-spacing: -0.025em;">Delete Project</h3>
+                        <p style="color: #718096; font-size: 0.875rem; margin: 0; font-weight: 500;">This action cannot be undone</p>
+                    </div>
+                </div>
+                <button class="close-modal-btn" onclick="closeDeleteProjectModal()" style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #718096; font-size: 1.25rem; transition: all 0.2s; hover:background: #edf2f7;">×</button>
+            </div>
+            <div class="modal-body" style="padding: 0 2rem 2rem 2rem;">
+                <p style="color: #4a5568; font-size: 1rem; margin: 0 0 1.5rem 0; line-height: 1.6; font-weight: 500;">
+                    Are you sure you want to delete "<span id="deleteProjectName" style="font-weight: 700; color: #2d3748;"></span>"?
+                </p>
+                <div style="background: linear-gradient(135deg, #fed7d7 0%, #fecaca 100%); border: 1px solid #fca5a5; border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: #dc2626; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-size: 0.75rem; font-weight: 700;">!</span>
+                        </div>
+                        <div style="color: #991b1b; font-size: 0.875rem; font-weight: 700;">Permanent Deletion Warning</div>
+                    </div>
+                    <div style="color: #7f1d1d; font-size: 0.875rem; line-height: 1.5; font-weight: 500; margin-left: 2rem;">
+                        • All project data and files will be lost<br>
+                        • Project settings and configurations will be removed<br>
+                        • This action cannot be reversed
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end; padding: 0 2rem 2rem 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteProjectModal()" style="padding: 0.875rem 1.75rem; border: 1px solid #d1d5db; background: white; color: #6b7280; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteProject()" style="padding: 0.875rem 1.75rem; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                    Delete Project
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapbox for project setup map -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/adam-chat-widget.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-table.js') }}"></script>
+
+    <script>
+        // Project Setup Map Variables
+        let projectSetupMap = null;
+        let projectSetupMapInitialized = false;
+        let mapUpdateTimeout = null;
+
+        // Initialize project setup map when modal opens
+        async function initializeProjectSetupMap() {
+            if (projectSetupMapInitialized) return;
+
+            try {
+                // Get Mapbox token
+                const tokenResponse = await fetch('/api/mapbox-token');
+                const tokenData = await tokenResponse.json();
+
+                if (!tokenData.success || !tokenData.token) {
+                    console.warn('No Mapbox token available for project setup map');
+                    return;
+                }
+
+                mapboxgl.accessToken = tokenData.token;
+
+                // Create map with globe view centered on Australia/NZ
+                projectSetupMap = new mapboxgl.Map({
+                    container: 'projectSetupMap',
+                    style: 'mapbox://styles/mapbox/streets-v12',
+                    projection: 'globe',
+                    center: [135, -25], // Center on Australia/New Zealand region
+                    zoom: 1.0, // Zoomed out further to show full Earth
+                    attributionControl: false,
+                    // Disable zoom controls and logo
+                    scrollZoom: true,
+                    boxZoom: false,
+                    doubleClickZoom: false,
+                    touchZoomRotate: false,
+                });
+
+                // Enable globe rotation
+                projectSetupMap.on('style.load', () => {
+                    projectSetupMap.setFog({
+                        'range': [0.5, 10],
+                        'color': '#ffffff',
+                        'horizon-blend': 0.1
+                    });
+                });
+
+                // Disable spinning when user interacts
+                projectSetupMap.on('mousedown', () => {
+                    userInteracting = true;
+                });
+                projectSetupMap.on('dragstart', () => {
+                    userInteracting = true;
+                });
+
+                // Re-enable spinning after user stops interacting
+                projectSetupMap.on('dragend', () => {
+                    userInteracting = false;
+                    setTimeout(() => {
+                        if (!userInteracting) {
+                            spinEnabled = true;
+                        }
+                    }, 2000);
+                });
+
+                // Spinning animation function
+                function spinGlobe() {
+                    if (spinEnabled && !userInteracting && projectSetupMap.loaded()) {
+                        const center = projectSetupMap.getCenter();
+                        center.lng -= 0.2;
+                        projectSetupMap.easeTo({ center, duration: 100 });
+                    }
+                    requestAnimationFrame(spinGlobe);
+                }
+
+                // Start spinning
+                spinGlobe();
+
+                // Navigation controls are disabled for project setup map
+
+                // Wait for map to load
+                projectSetupMap.on('load', () => {
+                    projectSetupMapInitialized = true;
+                    console.log('Project setup map initialized successfully');
+                });
+
+            } catch (error) {
+                console.error('Failed to initialize project setup map:', error);
+            }
+        }
+
+        // Update map based on site address input
+        async function updateProjectSetupMap(address) {
+            const locateBtn = document.getElementById('locateAddressBtn');
+
+            // Enable/disable locate button based on address input
+            if (locateBtn) {
+                if (address && address.trim().length >= 3) {
+                    locateBtn.disabled = false;
+                    locateBtn.style.opacity = '1';
+                } else {
+                    locateBtn.disabled = true;
+                    locateBtn.style.opacity = '0.5';
+                }
+            }
+
+            if (!address || address.trim().length < 3) return;
+            if (!projectSetupMapInitialized || !projectSetupMap) return;
+
+            // Clear existing timeout
+            if (mapUpdateTimeout) {
+                clearTimeout(mapUpdateTimeout);
+            }
+
+            // Debounce the geocoding request (but don't animate automatically)
+            mapUpdateTimeout = setTimeout(async () => {
+                // Just enable the locate button, don't animate automatically
+                console.log('Address ready for geocoding:', address);
+            }, 300);
+        }
+
+        // Global variables for map animation control
+        let userInteracting = false;
+        let spinEnabled = true;
+
+        // Function to manually trigger the locate animation
+        async function locateAddress() {
+            const address = document.getElementById('siteAddress').value.trim();
+            const locateBtn = document.getElementById('locateAddressBtn');
+
+            if (!address || address.length < 3) return;
+            if (!projectSetupMapInitialized || !projectSetupMap) return;
+
+            // Disable button and show loading state
+            if (locateBtn) {
+                locateBtn.disabled = true;
+                locateBtn.textContent = '...';
+                locateBtn.style.opacity = '0.7';
+            }
+
+            try {
+                console.log('Geocoding address for project setup map:', address);
+
+                const response = await fetch('/api/geocode-location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: address })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.location) {
+                    const { lat, lng } = data.location;
+
+                    // Stop spinning and fly to the new location
+                    spinEnabled = false;
+                    userInteracting = true;
+
+                    // Smooth animation to the location
+                    projectSetupMap.flyTo({
+                        center: [lng, lat],
+                        zoom: 16,
+                        duration: 2500,
+                        essential: true,
+                        curve: 1.2,
+                        easing: function(t) {
+                            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                        }
+                    });
+
+                    // Remove existing marker if any
+                    const existingMarkers = document.querySelectorAll('.project-setup-marker');
+                    existingMarkers.forEach(marker => marker.remove());
+
+                    // Add new marker with animation
+                    const marker = new mapboxgl.Marker({
+                        color: '#4f7cff',
+                        className: 'project-setup-marker'
+                    })
+                    .setLngLat([lng, lat])
+                    .addTo(projectSetupMap);
+
+
+
+                    console.log('Project setup map updated to:', data.location.display_name || address);
+                } else {
+                    console.warn('Geocoding failed for project setup:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating project setup map:', error);
+            } finally {
+                // Re-enable button
+                if (locateBtn) {
+                    locateBtn.disabled = false;
+                    locateBtn.textContent = 'Locate';
+                    locateBtn.style.opacity = '1';
+                }
+            }
+        }
+
+        // Modified showAddProjectModal function
+        function showAddProjectModal() {
+            console.log('[Dashboard] Opening Add Project modal');
+            const modal = document.getElementById('addProjectModal');
+            const form = document.getElementById('addProjectForm');
+
+            if (modal) {
+                modal.style.display = 'flex';
+
+                // Initialize map after modal is visible
+                setTimeout(() => {
+                    initializeProjectSetupMap();
+                }, 100);
+
+                // Reset form
+                if (form) {
+                    form.reset();
+                    switchProjectTab('overview');
+                }
+            }
+        }
+
+        // Modified closeAddProjectModal function
+        function closeAddProjectModal() {
+            const modal = document.getElementById('addProjectModal');
+            if (modal) {
+                modal.style.display = 'none';
+
+                // Clean up map resources
+                if (projectSetupMap) {
+                    // Remove markers
+                    const existingMarkers = document.querySelectorAll('.project-setup-marker');
+                    existingMarkers.forEach(marker => marker.remove());
+                }
+            }
+        }
+
+        // Update modal close event to handle map cleanup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close modal when clicking outside
+            const modal = document.getElementById('addProjectModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeAddProjectModal();
+                    }
+                });
+            }
+
+            // Close delete project modal when clicking outside
+            const deleteModal = document.getElementById('deleteProjectModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('click', function(e) {
+                    if (e.target === deleteModal) {
+                        closeDeleteProjectModal();
+                    }
+                });
+            }
+        });
+
+        // Function to update team menu name dynamically
+        function updateTeamMenuName() {
+            fetch('/api/get-team-name')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Team name API response:', data);
+                    const teamMenuText = document.getElementById('teamMenuText');
+                    const teamMenuItem = document.getElementById('teamMenuItem');
+                    const fileFilterSelect = document.getElementById('fileFilterSelect');
+
+                    if (data && data.success && data.team_name) {
+                        if (teamMenuText) {
+                            teamMenuText.textContent = data.team_name;
+                            teamMenuText.title = data.team_name; // Show full name on hover
+                            console.log('Team menu updated with name:', data.team_name);
+                        }
+                        if (teamMenuItem) {
+                            teamMenuItem.style.display = 'flex';
+                        }
+                        // Show filter dropdown when user has a team
+                        if (fileFilter<form id="addProjectForm">
+                        <!-- Project Overview Section -->
+                        <div id="projectOverviewSection" class="project-section active">
+                            <!-- Top section with basic info and map side by side -->
+                            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                                <div style="flex: 1;">
+                                    <div class="form-group">
+                                        <label for="projectName">Project Name *</label>
+                                        <input type="text" id="projectName" name="projectName" required placeholder="Enter project name">
+                                        <span class="error-message" id="projectNameError"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projectNumber">Project Number</label>
+                                        <input type="text" id="projectNumber" name="projectNumber" placeholder="Enter project number">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="clientName">Client Name</label>
+                                        <input type="text" id="clientName" name="clientName" placeholder="Enter client name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="siteAddress">Site Address *</label>
+                                        <div style="display: flex; gap: 8px; align-items: stretch;">
+                                            <input type="text" id="siteAddress" name="siteAddress" required placeholder="Enter site address" oninput="updateProjectSetupMap(this.value)" style="flex: 1; height: 40px; padding: 0 12px; box-sizing: border-box;">
+                                            <button type="button" id="locateAddressBtn" onclick="locateAddress()" style="background: linear-gradient(135deg, #4f7cff 0%, #6b8aff 100%); color: white; border: none; border-radius: 6px; padding: 0 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; min-width: 60px; height: 40px; box-sizing: border-box;" disabled>
+                                                Locate
+                                            </button>
+                                        </div>
+                                        <span class="error-message" id="siteAddressError"></span>
+                                    </div>
+                                </div>
+                                <!-- Map - Only shown in Project Overview -->
+                                <div style="width: 400px; height: 320px; border-radius: 12px; overflow: hidden; flex-shrink: 0;">
+                                    <div id="projectSetupMap" style="width: 100%; height: 100%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Full width site information section below map -->
+                            <div style="width: 100%;">
+                                <div class="form-group">
+                                    <label for="siteInformation">Site Information</label>
+                                    <textarea id="siteInformation" name="siteInformation" placeholder="Enter site information"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Settings Section -->
+                        <div id="projectSettingsSection" class="project-section">
+                            <div class="form-group">
+                                <label for="projectType">Project Type</label>
+                                <select id="projectType" name="projectType">
+                                    <option value="">Select project type</option>
+                                    <option value="residential">Residential</option>
+                                    <option value="commercial">Commercial</option>
+                                    <option value="industrial">Industrial</option>
+                                    <option value="infrastructure">Infrastructure</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="projectUnits">Project Units</label>
+                                <select id="projectUnits" name="projectUnits">
+                                    <option value="">Select measurement system</option>
+                                    <option value="metric">Metric (mm, m, kN)</option>
+                                    <option value="imperial">Imperial (in, ft, lbs)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Project Visibility</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="projectVisibility" value="private" checked>
+                                        <span class="radio-label">Private</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="projectVisibility" value="team">
+                                        <span class="radio-label">Team</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="projectVisibility" value="public">
+                                        <span class="radio-label">Public</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group" id="teamMembersGroup" style="display: none;">
+                                <label for="teamMembers">Team Members</label>
+                                <input type="text" id="teamMembers" name="teamMembers" placeholder="Enter EngineRoom usernames (comma separated)">
+                                <small style="color: #718096; font-size: 0.75rem; margin-top: 4px; display: block;">
+                                    Add other EngineRoom users to collaborate on this project
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeAddProjectModal()">Cancel</button>                        <button type="submit" class="btn btn-primary">Begin Project</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Setup Modal -->
+    <div id="teamSetupModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="max-width: 500px; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+            <div class="modal-header">
+                <h2>Set Up Your Team</h2>
+                <span class="modal-close" id="closeTeamSetup" style="cursor: pointer; font-size: 1.5rem; color: #718096;">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="teamSetupForm">
+                    <div class="form-group">
+                        <label for="teamName">Organisation or Team Name</label>
+                        <input type="text" id="teamName" name="teamName" required placeholder="Enter your name here">
+                    </div>
+                    <div class="form-group">
+                        <label for="teamSize">Expected Team Size</label>
+                        <select id="teamSize" name="teamSize" required>
+                            <option value="">Select team size</option>
+                            <option value="2-5">2-5 members</option>
+                            <option value="6-10">6-10 members</option>
+                            <option value="11-25">11-25 members</option>
+                            <option value="26+">26+ members</option>
+                        </select>
+                    </div>
+                    <div class="form-buttons" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">Create Team</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Project Confirmation Modal -->
+    <div class="modal-overlay" id="deleteProjectModal" style="display: none;">
+        <div class="modal" style="max-width: 520px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);">
+            <div class="modal-header" style="display: flex; align-items: flex-start; justify-content: space-between; padding: 2rem 2rem 1rem 2rem; border-bottom: none;">
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2);">
+                        <span style="color: #c53030; font-size: 1.5rem;">⚠️</span>
+                    </div>
+                    <div>
+                        <h3 style="color: #1a202c; font-size: 1.375rem; font-weight: 700; margin: 0 0 0.5rem 0; letter-spacing: -0.025em;">Delete Project</h3>
+                        <p style="color: #718096; font-size: 0.875rem; margin: 0; font-weight: 500;">This action cannot be undone</p>
+                    </div>
+                </div>
+                <button class="close-modal-btn" onclick="closeDeleteProjectModal()" style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #718096; font-size: 1.25rem; transition: all 0.2s; hover:background: #edf2f7;">×</button>
+            </div>
+            <div class="modal-body" style="padding: 0 2rem 2rem 2rem;">
+                <p style="color: #4a5568; font-size: 1rem; margin: 0 0 1.5rem 0; line-height: 1.6; font-weight: 500;">
+                    Are you sure you want to delete "<span id="deleteProjectName" style="font-weight: 700; color: #2d3748;"></span>"?
+                </p>
+                <div style="background: linear-gradient(135deg, #fed7d7 0%, #fecaca 100%); border: 1px solid #fca5a5; border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: #dc2626; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white; font-size: 0.75rem; font-weight: 700;">!</span>
+                        </div>
+                        <div style="color: #991b1b; font-size: 0.875rem; font-weight: 700;">Permanent Deletion Warning</div>
+                    </div>
+                    <div style="color: #7f1d1d; font-size: 0.875rem; line-height: 1.5; font-weight: 500; margin-left: 2rem;">
+                        • All project data and files will be lost<br>
+                        • Project settings and configurations will be removed<br>
+                        • This action cannot be reversed
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end; padding: 0 2rem 2rem 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteProjectModal()" style="padding: 0.875rem 1.75rem; border: 1px solid #d1d5db; background: white; color: #6b7280; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteProject()" style="padding: 0.875rem 1.75rem; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                    Delete Project
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapbox for project setup map -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/adam-chat-widget.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-table.js') }}"></script>
+
+    <script>
+        // Project Setup Map Variables
+        let projectSetupMap = null;
+        let projectSetupMapInitialized = false;
+        let mapUpdateTimeout = null;
+
+        // Initialize project setup map when modal opens
+        async function initializeProjectSetupMap() {
+            if (projectSetupMapInitialized) return;
+
+            try {
+                // Get Mapbox token
+                const tokenResponse = await fetch('/api/mapbox-token');
+                const tokenData = await tokenResponse.json();
+
+                if (!tokenData.success || !tokenData.token) {
+                    console.warn('No Mapbox token available for project setup map');
+                    return;
+                }
+
+                mapboxgl.accessToken = tokenData.token;
+
+                // Create map with globe view centered on Australia/NZ
+                projectSetupMap = new mapboxgl.Map({
+                    container: 'projectSetupMap',
+                    style: 'mapbox://styles/mapbox/streets-v12',
+                    projection: 'globe',
+                    center: [135, -25], // Center on Australia/New Zealand region
+                    zoom: 1.0, // Zoomed out further to show full Earth
+                    attributionControl: false,
+                    // Disable zoom controls and logo
+                    scrollZoom: true,
+                    boxZoom: false,
+                    doubleClickZoom: false,
+                    touchZoomRotate: false,
+                });
+
+                // Enable globe rotation
+                projectSetupMap.on('style.load', () => {
+                    projectSetupMap.setFog({
+                        'range': [0.5, 10],
+                        'color': '#ffffff',
+                        'horizon-blend': 0.1
+                    });
+                });
+
+                // Disable spinning when user interacts
+                projectSetupMap.on('mousedown', () => {
+                    userInteracting = true;
+                });
+                projectSetupMap.on('dragstart', () => {
+                    userInteracting = true;
+                });
+
+                // Re-enable spinning after user stops interacting
+                projectSetupMap.on('dragend', () => {
+                    userInteracting = false;
+                    setTimeout(() => {
+                        if (!userInteracting) {
+                            spinEnabled = true;
+                        }
+                    }, 2000);
+                });
+
+                // Spinning animation function
+                function spinGlobe() {
+                    if (spinEnabled && !userInteracting && projectSetupMap.loaded()) {
+                        const center = projectSetupMap.getCenter();
+                        center.lng -= 0.2;
+                        projectSetupMap.easeTo({ center, duration: 100 });
+                    }
+                    requestAnimationFrame(spinGlobe);
+                }
+
+                // Start spinning
+                spinGlobe();
+
+                // Navigation controls are disabled for project setup map
+
+                // Wait for map to load
+                projectSetupMap.on('load', () => {
+                    projectSetupMapInitialized = true;
+                    console.log('Project setup map initialized successfully');
+                });
+
+            } catch (error) {
+                console.error('Failed to initialize project setup map:', error);
+            }
+        }
+
+        // Update map based on site address input
+        async function updateProjectSetupMap(address) {
+            const locateBtn = document.getElementById('locateAddressBtn');
+
+            // Enable/disable locate button based on address input
+            if (locateBtn) {
+                if (address && address.trim().length >= 3) {
+                    locateBtn.disabled = false;
+                    locateBtn.style.opacity = '1';
+                } else {
+                    locateBtn.disabled = true;
+                    locateBtn.style.opacity = '0.5';
+                }
+            }
+
+            if (!address || address.trim().length < 3) return;
+            if (!projectSetupMapInitialized || !projectSetupMap) return;
+
+            // Clear existing timeout
+            if (mapUpdateTimeout) {
+                clearTimeout(mapUpdateTimeout);
+            }
+
+            // Debounce the geocoding request (but don't animate automatically)
+            mapUpdateTimeout = setTimeout(async () => {
+                // Just enable the locate button, don't animate automatically
+                console.log('Address ready for geocoding:', address);
+            }, 300);
+        }
+
+        // Global variables for map animation control
+        let userInteracting = false;
+        let spinEnabled = true;
+
+        // Function to manually trigger the locate animation
+        async function locateAddress() {
+            const address = document.getElementById('siteAddress').value.trim();
+            const locateBtn = document.getElementById('locateAddressBtn');
+
+            if (!address || address.length < 3) return;
+            if (!projectSetupMapInitialized || !projectSetupMap) return;
+
+            // Disable button and show loading state
+            if (locateBtn) {
+                locateBtn.disabled = true;
+                locateBtn.textContent = '...';
+                locateBtn.style.opacity = '0.7';
+            }
+
+            try {
+                console.log('Geocoding address for project setup map:', address);
+
+                const response = await fetch('/api/geocode-location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: address })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.location) {
+                    const { lat, lng } = data.location;
+
+                    // Stop spinning and fly to the new location
+                    spinEnabled = false;
+                    userInteracting = true;
+
+                    // Smooth animation to the location
+                    projectSetupMap.flyTo({
+                        center: [lng, lat],
+                        zoom: 16,
+                        duration: 2500,
+                        essential: true,
+                        curve: 1.2,
+                        easing: function(t) {
+                            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                        }
+                    });
+
+                    // Remove existing marker if any
+                    const existingMarkers = document.querySelectorAll('.project-setup-marker');
+                    existingMarkers.forEach(marker => marker.remove());
+
+                    // Add new marker with animation
+                    const marker = new mapboxgl.Marker({
+                        color: '#4f7cff',
+                        className: 'project-setup-marker'
+                    })
+                    .setLngLat([lng, lat])
+                    .addTo(projectSetupMap);
+
+
+
+                    console.log('Project setup map updated to:', data.location.display_name || address);
+                } else {
+                    console.warn('Geocoding failed for project setup:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating project setup map:', error);
+            } finally {
+                // Re-enable button
+                if (locateBtn) {
+                    locateBtn.disabled = false;
+                    locateBtn.textContent = 'Locate';
+                    locateBtn.style.opacity = '1';
+                }
+            }
+        }
+
+        // Modified showAddProjectModal function
+        function showAddProjectModal() {
+            console.log('[Dashboard] Opening Add Project modal');
+            const modal = document.getElementById('addProjectModal');
+            const form = document.getElementById('addProjectForm');
+
+            if (modal) {
+                modal.style.display = 'flex';
+
+                // Initialize map after modal is visible
+                setTimeout(() => {
+                    initializeProjectSetupMap();
+                }, 100);
+
+                // Reset form
+                if (form) {
+                    form.reset();
+                    switchProjectTab('overview');
+                }
+            }
+        }
+
+        // Modified closeAddProjectModal function
+        function closeAddProjectModal() {
+            const modal = document.getElementById('addProjectModal');
+            if (modal) {
+                modal.style.display = 'none';
+
+                // Clean up map resources
+                if (projectSetupMap) {
+                    // Remove markers
+                    const existingMarkers = document.querySelectorAll('.project-setup-marker');
+                    existingMarkers.forEach(marker => marker.remove());
+                }
+            }
+        }
+
+        // Update modal close event to handle map cleanup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close modal when clicking outside
+            const modal = document.getElementById('addProjectModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeAddProjectModal();
+                    }
+                });
+            }
+
+            // Close delete project modal when clicking outside
+            const deleteModal = document.getElementById('deleteProjectModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('click', function(e) {
+                    if (e.target === deleteModal) {
+                        closeDeleteProjectModal();
+                    }
+                });
+            }
+        });
+
+        // Function to update team menu name dynamically
+        function updateTeamMenuName() {
+            fetch('/api/get-team-name')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Team name API response:', data);
+                    const teamMenuText = document.getElementById('teamMenuText');
+                    const teamMenuItem = document.getElementById('teamMenuItem');
+                    const fileFilterSelect = document.getElementById('fileFilterSelect');
+
+                    if (data && data.success && data.team_name) {
+                        if (teamMenuText) {
+                            teamMenuText.textContent = data.team_name;
+                            teamMenuText.title = data.team_name; // Show full name on hover
+                            console.log('Team menu updated with name:', data.team_name);
+                        }
+                        if (teamMenuItem) {
+                            teamMenuItem.style.display = 'flex';
+                        }
+                        // Show filter dropdown when user has a team
+                        if (fileFilterSelect) {
+                            fileFilterSelect.style.display = 'block';
+                        }
+                    } else {
+                        console.log('No team name found in response');
+                        // No team found, hide the team menu item and filter dropdown
+                        if (teamMenuItem) {
+                            teamMenuItem.style.display = 'none';
+                        }
+                        if (fileFilterSelect) {
+                            fileFilterSelect.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('Could not load team name:', error);
+                    // On error, hide team menu and filter dropdown as fallback
+                    const teamMenuItem = document.getElementById('teamMenuItem');
+                    const fileFilterSelect = document.getElementById('fileFilterSelect');
+                    if (teamMenuItem) {
+                        teamMenuItem.style.display = 'none';
+                    }
+                    if (fileFilterSelect) {
+                        fileFilterSelect.style.display = 'none';
+                    }
+                });
+        }
+
+        // Check if user has team account type and show modal
+        {% if user and user.get('account_type') == 'team' %}
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update team menu name on page load
+            updateTeamMenuName();
+
+            // Small delay to ensure DOM is fully loaded
+            setTimeout(function() {
+                // For team accounts, check if they have a team_id in their profile
+                // If no team_id, show the setup modal
+                fetch('/api/get-user-profile')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Show modal if user doesn't have a team setup yet and still has team account type
+                        if (!data.team_id && data.account_type === 'team') {
+                            const modal = document.getElementById('teamSetupModal');
+                            if (modal) {
+                                modal.style.display = 'flex';
+                                console.log('Team setup modal displayed for team account');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Could not check team status, showing modal as fallback');
+                        const modal = document.getElementById('teamSetupModal');
+                        if (modal) {
+                            modal.style.display = 'flex';
+                        }
+                    });
+            }, 300);
+        });
+        {% else %}
+        document.addEventListener('DOMContentLoaded', function() {
+            // For individual accounts, hide team menu and update team name
+            updateTeamMenuName();
+        });
+        {% endif %}
+
+        // Team setup modal functionality
+        const teamSetupModal = document.getElementById('teamSetupModal');
+        const closeTeamSetup = document.getElementById('closeTeamSetup');
+
+        const teamSetupForm = document.getElementById('teamSetupForm');
+
+        if (closeTeamSetup) {
+            closeTeamSetup.addEventListener('click', () => {
+                teamSetupModal.style.display = 'none';
+            });
+        }
+
+
+
+        if (teamSetupForm) {
+            teamSetupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(teamSetupForm);
+                const teamData = {
+                    teamName: formData.get('teamName'),
+                    teamDescription: '',
+                    teamSize: formData.get('teamSize')
+                };
+
+                try {
+                    const response = await fetch('/api/setup-team', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(teamData)
+                    });
+
+                    if (response.ok) {
+                        teamSetupModal.style.display = 'none';
+                        // Update team menu immediately
+                        updateTeamMenuName();
+                        location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('Failed to create team: ' + (error.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Team setup error:', error);
+                    alert('Failed to create team. Please try again.');
+                }
+            });
+        }
+
+        // Signup modal functionality
+        /* =============================================================================
+           DASHBOARD JAVASCRIPT
+           Handles modal interactions, form validation, and search functionality
+
+           Developer Notes:
+           - All functions use modern JavaScript (ES6+)
+           - Error handling includes both client-side validation and server response handling
+           - Session storage is used for data persistence between page transitions
+           - Event listeners are properly cleaned up to prevent memory leaks
+
+           Debugging Tips:
+           - Check browser console for API call responses
+           - Use Network tab to monitor /api/create-project requests
+           - Verify session storage contents after project creation
+           - Test form validation by submitting empty fields
+           ============================================================================= */
+
+        // =============================================================================
+        // ADD PROJECT MODAL FUNCTIONS
+        // =============================================================================
+
+        /**
+         * Opens the Add Project modal
+         * Focuses on the first input field for better UX
+         */
+        function openAddProjectModal() {
+            console.log('[Dashboard] Opening Add Project modal');
+            document.getElementById('addProjectModal').style.display = 'flex';
+            document.getElementById('projectName').focus();
+        }
+
+        /**
+         * Closes the Add Project modal and resets form
+         */
+        function closeAddProjectModal() {
+            console.log('[Dashboard] Closing Add Project modal');
+            document.getElementById('addProjectModal').style.display = 'none';
+            document.getElementById('addProjectForm').reset();
+            clearErrors();
+        }
+
+        /**
+         * Clears all form validation error messages
+         */
+        function clearErrors() {
+            document.getElementById('projectNameError').textContent = '';
+            document.getElementById('siteAddressError').textContent = '';
+        }
+
+        /**
+         * Switches between project tab sections
+         *
+         * @param {string} tab - Tab to switch to ('overview' or 'settings')
+         */
+        function switchProjectTab(tab) {
+            console.log('[Dashboard] Switching to project tab: ' + tab);
+
+            // Update button states
+            const overviewBtn = document.getElementById('overviewBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+
+            overviewBtn.classList.remove('active');
+            settingsBtn.classList.remove('active');
+
+            // Update section visibility
+            const overviewSection = document.getElementById('projectOverviewSection');
+            const settingsSection = document.getElementById('projectSettingsSection');
+
+            overviewSection.classList.remove('active');
+            settingsSection.classList.remove('active');
+
+            if (tab === 'overview') {
+                overviewBtn.classList.add('active');
+                overviewSection.classList.add('active');
+            } else if (tab === 'settings') {
+                settingsBtn.classList.add('active');
+                settingsSection.classList.add('active');
+            }
+        }
+
+        // =============================================================================
+        // FORM VALIDATION AND SUBMISSION
+        // =============================================================================
+
+        /**
+         * Handles Add Project form submission
+         * Validates inputs, creates project via API, and redirects to site selection
+         */
+        document.getElementById('addProjectForm').addEventListener('submit', function(e){
+            e.preventDefault();
+console.log('[Dashboard] Processing Add Project form submission');
+
+            clearErrors();
+
+            const projectName = document.getElementById('projectName').value.trim();
+            const projectNumber = document.getElementById('projectNumber').value.trim();
+            const clientName = document.getElementById('clientName').value.trim();
+            const siteAddress = document.getElementById('siteAddress').value.trim();
+            const siteInformation = document.getElementById('siteInformation').value.trim();
+
+            let hasErrors = false;
+
+            // Client-side validation
+            if (!projectName) {
+                document.getElementById('projectNameError').textContent = 'Project name is required';
+                hasErrors = true;
+            }
+
+            if (!siteAddress) {
+                document.getElementById('siteAddressError').textContent = 'Site address is required';
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                console.log('[Dashboard] Form validation failed');
+                return;
+            }
+
+            // Get project settings data with defaults
+            const projectType = document.getElementById('projectType').value.trim() || null;
+            const projectUnits = document.getElementById('projectUnits').value.trim() || 'metric';
+            const projectVisibility = document.querySelector('input[name="projectVisibility"]:checked').value || 'private';
+            const teamMembers = document.getElementById('teamMembers').value.trim();
+
+            // Create project data object
+            const projectData = {
+                    name: projectName,
+                    projectNumber: projectNumber,
+                    clientName: clientName,
+                    address: siteAddress,
+                    siteInformation: siteInformation,
+                    projectType: projectType,
+                    projectUnits: projectUnits,
+                    projectVisibility: projectVisibility,
+                    teamMembers: teamMembers
+                };
+
+            console.log('[Dashboard] Sending project creation request', {
+                name: projectName,
+                projectNumber: projectNumber,
+                clientName: clientName,
+                address: siteAddress,
+                siteInformation: siteInformation
+            });
+
+            // Submit to backend API
+            fetch('/api/create-project', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(projectData)
+            })
+            .then(response => {
+                console.log('[Dashboard] Received API response', { status: response.status });
+                return response.json();
+            })
+            .then(data => {
+                console.log('[Dashboard] API response data', data);
+
+                if (data.success) {
+                    console.log('[Dashboard] Project created successfully, preparing redirect');
+                    closeAddProjectModal();
+
+                    // Store project data in session storage for site selection page
+                    sessionStorage.setItem('project_site_address', siteAddress);
+                    sessionStorage.setItem('project_name', projectName);
+
+                    console.log('[Dashboard] Session storage updated, redirecting to site inspector');
+
+                    // Redirect to site inspector page
+                    window.location.href = '/site-inspector';
+                } else {
+                    console.error('[Dashboard] Project creation failed', data);
+                    alert('Error creating project: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('[Dashboard] API request failed', error);
+                alert('Error creating project. Please try again.');
+            });
+        });
+
+        // =============================================================================
+        // PROJECT SEARCH FUNCTIONALITY
+        // =============================================================================
+
+        // Search functionality is now handled by DashboardManager
+        // This prevents conflicts and duplicate event listeners
+
+        /**
+         * Filters project list based on search input
+         * Searches project name, metadata, and status
+         */
+        function filterProjects(searchTerm) {
+            const projectCards = document.querySelectorAll('.project-card');
+            let visibleCount = 0;
+
+            projectCards.forEach(card => {
+                const projectTitle = card.querySelector('.project-card-title');
+                const projectMeta = card.querySelector('.project-card-meta');
+                const projectStatus = card.querySelector('.project-card-status');
+
+                if (!projectTitle || !projectMeta || !projectStatus) return;
+
+                const titleText = projectTitle.textContent.toLowerCase();
+                const metaText = projectMeta.textContent.toLowerCase();
+                const statusText = projectStatus.textContent.toLowerCase();
+
+                // Check if search term matches any project field
+                const isMatch = searchTerm === '' ||
+                              titleText.includes(searchTerm) ||
+                              metaText.includes(searchTerm) ||
+                              statusText.includes(searchTerm);
+
+                if (isMatch) {
+                    card.style.display = 'block';
+                    visibleCount++;
+
+                    // Add subtle highlight for search results
+                    if (searchTerm !== '') {
+                        card.style.backgroundColor = '#f0f9ff';
+                        card.style.border = '2px solid #547bf7';
+                    } else {
+                        card.style.backgroundColor = '';
+                        card.style.border = '1px solid #e2e8f0';
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            console.log('[Dashboard] Search filtered projects: ' + visibleCount + ' visible of ' + projectCards.length + ' total');
+        }
+
+        // =============================================================================
+        // ALL FILES TABLE FUNCTIONALITY
+        // =============================================================================
+
+
+
+        // Pagination variables
+        let currentPage = 1;
+        let projectsPerPage = 12;
+        let allProjects = [];
+        let filteredProjects = [];
+
+        /**
+         * Populate the files table with project data and pagination
+         */
+        function populateFilesTable(projects = [], filter = 'all') {
+            const tableBody = document.getElementById('filesTableBody');
+            const tableContainer = document.getElementById('filesTableContainer');
+            const paginationContainer = document.getElementById('paginationContainer');
+
+            if (!tableBody) return;
+
+            // Store all projects and apply filter
+            allProjects = projects;
+            filteredProjects = projects;
+
+            if (filter === 'my') {
+                filteredProjects = projects.filter(p => p.type === 'my');
+            } else if (filter === 'team') {
+                filteredProjects = projects.filter(p => p.type === 'team');
+            }
+
+            // Reset to first page when filter changes
+            currentPage = 1;
+
+            if (filteredProjects.length === 0) {
+                tableBody.innerHTML = `
+                    <tr class="no-data-row">
+                        <td colspan="6" class="no-data-message">
+                            <div class="no-data-content">
+                                <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">📋</div>
+                                <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">No projects found</p>
+                                <p style="font-size: 0.9rem;">Create your first project to get started</p>
+                                </div>
+                        </td>
+                    </tr>
+                `;
+                paginationContainer.style.display = 'none';
+                updateTableHeight(0);
+                return;
+            }
+
+            // Calculate pagination
+            const totalProjects = filteredProjects.length;
+            const totalPages = Math.ceil(totalProjects / projectsPerPage);
+            const startIndex = (currentPage - 1) * projectsPerPage;
+            const endIndex = Math.min(startIndex + projectsPerPage, totalProjects);
+            const projectsToShow = filteredProjects.slice(startIndex, endIndex);
+
+            // Generate table rows
+            const rows = projectsToShow.map(project => `
+                <tr data-project-id="${project.id}">
+                    <td class="project-name-cell">
+                        <a href="#" onclick="openProject(${project.id}); return false;" style="color: #547bf7; text-decoration: none; font-weight: 600;">
+                            ${project.name}
+                        </a>
+                    </td>
+                    <td>${project.client || 'N/A'}</td>
+                    <td>${project.owner}</td>
+                    <td>${formatDate(project.modified)}</td>
+                    <td>
+                        <span class="project-status-badge ${project.status}">
+                            ${getStatusText(project.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="project-actions">
+                            <button class="action-btn share" onclick="shareProject(${project.id})">Share</button>
+                            <button class="action-btn delete" onclick="deleteProject(${project.id})">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            tableBody.innerHTML = rows;
+
+            // Update table height based on number of projects
+            updateTableHeight(projectsToShow.length);
+
+            // Update project counter in sidebar
+            updateProjectCounter(totalProjects);
+
+            // Show/hide pagination based on total projects
+            if (totalProjects > projectsPerPage) {
+                paginationContainer.style.display = 'flex';
+                updatePaginationControls(totalPages, startIndex + 1, endIndex, totalProjects);
+            } else {
+                paginationContainer.style.display = 'none';
+            }
+        }
+
+        /**
+         * Update card height based on number of projects
+         */
+        function updateTableHeight(projectCount) {
+            const allFilesCard = document.getElementById('allFilesView');
+            if (!allFilesCard) return;
+
+            // For no projects, use a smaller fixed height
+            if (projectCount === 0) {
+                allFilesCard.style.height = '300px';
+                return;
+            }
+
+            // Base height for card header + padding + borders
+            const baseHeight = 120;
+            // Height per row (including padding and borders)
+            const rowHeight = 50;
+            // Calculate content height
+            const contentHeight = Math.max(200, projectCount * rowHeight + 100);
+
+            // Calculate total card height
+            const totalHeight = baseHeight + contentHeight;
+
+            // Set minimum and maximum heights for the entire card
+            const minHeight = 320;
+            const maxHeight = 720;
+
+            const finalHeight = Math.max(minHeight, Math.min(totalHeight, maxHeight));
+            allFilesCard.style.height = `${finalHeight}px`;
+        }
+
+        /**
+         * Update pagination controls
+         */
+        function updatePaginationControls(totalPages, startIndex, endIndex, totalProjects) {
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationPages = document.getElementById('paginationPages');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+
+            // Update info text
+            paginationInfo.textContent = `Showing ${startIndex}-${endIndex} of ${totalProjects} projects`;
+
+            // Update previous/next buttons
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+
+            // Generate page numbers
+            let pagesHtml = '';
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Adjust start page if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                pagesHtml += `
+                    <button class="pagination-page ${i === currentPage ? 'active' : ''}" 
+                            onclick="goToPage(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            paginationPages.innerHTML = pagesHtml;
+        }
+
+        /**
+         * Change page by offset
+         */
+        function changePage(offset) {
+            const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+            const newPage = currentPage + offset;
+
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                populateFilesTable(allProjects, getCurrentFilter());
+            }
+        }
+
+        /**
+         * Go to specific page
+         */
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                populateFilesTable(allProjects, getCurrentFilter());
+            }
+        }
+
+        /**
+         * Get current filter value
+         */
+        function getCurrentFilter() {
+            const filterSelect = document.getElementById('fileFilterSelect');
+            return filterSelect ? filterSelect.value : 'all';
+        }
+
+        /**
+         * Update project counter in sidebar
+         */
+        function updateProjectCounter(count) {
+            const projectCounter = document.getElementById('projectCounter');
+            if (projectCounter) {
+                projectCounter.textContent = count;
+            }
+        }
+
+        /**
+         * Format date for display
+         */
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        /**
+         * Project action handlers
+         */
+        function openProject(projectId) {
+            console.log('[Dashboard] Opening project ' + projectId);
+            // Redirect to project overview page
+            window.location.href = '/project/' + projectId;
+        }
+
+        function shareProject(projectId) {
+            console.log('[Dashboard] Sharing project ' + projectId);
+            // Get project details for sharing
+            const row = document.querySelector(`tr[data-project-id="${projectId}"]`);
+            const projectName = row ? row.querySelector('.project-name-cell a').textContent : 'Project';
+
+            // Create share URL (you can modify this based on your sharing requirements)
+            const shareUrl = window.location.origin + '/site-selection?project=' + projectId + '&shared=true';
+
+            // Copy to clipboard and show notification
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('Share link for "' + projectName + '" has been copied to your clipboard!');
+            }).catch(() => {
+                // Fallback: show the URL in a prompt for manual copying
+                prompt('Share this link for "' + projectName + '":', shareUrl);
+            });
+        }
+
+        function deleteProject(projectId) {
+            console.log('[Dashboard] Delete requested for project ' + projectId);
+            const row = document.querySelector('tr[data-project-id="' + projectId + '"]');
+            const projectName = row ? row.querySelector('.project-name-cell a').textContent : 'this project';
+
+            if (confirm('Are you sure you want to delete "' + projectName + '"? This action cannot be undone.')) {
+                // Implement delete functionality
+                console.log('Deleting project ' + projectId);
+                // Remove from UI for now
+                if (row) {
+                    row.remove();
+                }
+                // In a real implementation, you would make an API call here
+                // Example: fetch(`/api/delete-project/${projectId}`, { method: 'DELETE' })
+                // Call the deleteProject method on the dashboardManager
+                window.dashboardManager.deleteProject(projectId);
+            }
+        }
+
+        /**
+         * Load projects from API
+         */
+        async function loadAllProjects() {
+            try {
+                console.log('[Dashboard] Loading user projects from API...');
+                const response = await fetch('/api/get-user-projects');
+                const data = await response.json();
+
+                if (data.success && data.projects) {
+                    console.log('[Dashboard] Loaded ' + data.projects.length + ' projects');
+                    return data.projects;
+                } else {
+                    console.warn('[Dashboard] API returned no projects:', data);
+                    return []; // Return empty array instead of sample data
+                }
+            } catch (error) {
+                console.error('[Dashboard] Error loading projects:', error);
+                return []; // Return empty array instead of sample data
+            }
+        }
+
+        /**
+         * Populate recent projects section
+         */
+        function populateRecentProjects(projects) {
+            const container = document.getElementById('recentProjectsContainer');
+            const noProjectsMessage = container.querySelector('.no-recent-projects');
+
+            if (!container) return;
+
+            if (!projects || projects.length === 0) {
+                // Show no projects message
+                if (noProjectsMessage) {
+                    noProjectsMessage.style.display = 'flex';
+                }
+                console.log('[Dashboard] No recent projects to display');
+                return;
+            }
+
+            // Hide no projects message
+            if (noProjectsMessage) {
+                noProjectsMessage.style.display = 'none';
+            }
+
+            // Get most recent 5 projects
+            const recentProjects = projects
+                .sort((a, b) => new Date(b.modified || b.created) - new Date(a.modified || a.created))
+                .slice(0, 5);
+
+            // Generate project cards
+            const projectCards = recentProjects.map(project => {
+                const projectType = getProjectTypeClass(project.type || project.status);
+                const icon = getProjectIcon(project.type || project.status);
+
+                return `
+                    <div class="project-card" onclick="openProject(${project.id})">
+                        <div class="project-card-header ${projectType}">
+                            <div class="project-card-icon">${icon}</div>
+                        </div>
+                        <div class="project-card-content">
+                            <h4 class="project-card-title">${project.name}</h4>
+                            <p class="project-card-meta">Modified: ${formatDate(project.modified || project.created)}</p>
+                            <span class="project-card-status ${project.status || 'active'}">${getStatusText(project.status || 'active')}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = projectCards;
+            console.log('[Dashboard] Populated ' + recentProjects.length + ' recent projects');
+        }
+
+        /**
+         * Get project type CSS class
+         */
+        function getProjectTypeClass(type) {
+            const typeMap = {
+                'structural': 'structural',
+                'structural-analyser': 'structural',
+                'structure-designer': 'structural',
+                'site': 'site',
+                'site-selection': 'site',
+                'site-inspector': 'site',
+                'terrain-analysis': 'site',
+                'building': 'building',
+                'residential': 'building',
+                'commercial': 'building',
+                'industrial': 'building'
+            };
+            return typeMap[type] || 'building';
+        }
+
+        /**
+         * Get project icon
+         */
+        function getProjectIcon(type) {
+            const iconMap = {
+                'structural': '🏗️',
+                'structural-analyser': '⚙️',
+                'structure-designer': '🏗️',
+                'site': '🗺️',
+                'site-selection': '📍',
+                'site-inspector': '🔍',
+                'terrain-analysis': '🏔️',
+                'building': '🏢',
+                'residential': '🏠',
+                'commercial': '🏢',
+                'industrial': '🏭'
+            };
+            return iconMap[type] || '📋';
+        }
+
+        /**
+         * Get status text
+         */
+        function getStatusText(status) {
+                    const statusMap = {
+                        'site-selection': 'Site Selection',
+                        'site-inspector': 'Site Inspector',
+                        'terrain-analysis': 'Terrain Analysis',
+                        'structure-designer': 'Structure Designer',
+                        'structural-analyser': 'Structural Analyser',
+                        // Legacy statuses for backward compatibility
+                        'active': 'Active',
+                        'completed': 'Completed',
+                        'pending': 'Pending'
+                    };
+                    return statusMap[status] || status;
+                }
+
+        // =============================================================================
+        // EVENT LISTENERS AND INITIALIZATION
+        // =============================================================================
+
+        // Initialize dashboard when DOM is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('[Dashboard] DOM loaded, initializing dashboard components');
+
+            try {
+                // Wait for core modules to be ready
+                if (typeof BaseManager === 'undefined') {
+                    console.log('[Dashboard] Waiting for core modules...');
+                    await new Promise(resolve => {
+                        const checkReady = () => {
+                            if (typeof BaseManager !== 'undefined') {
+                                resolve();
+                            } else {
+                                setTimeout(checkReady, 100);
+                            }
+                        };
+                        checkReady();
+                    });
+                }
+
+                // Create global references for access from other functions
+                window.dashboardManager = new DashboardManager();
+                await window.dashboardManager.initialize();
+
+                // Initialize table manager and make it globally accessible
+                window.dashboardTableManager = new DashboardTableManager();
+                await window.dashboardTableManager.initialize();
+
+                // Set up pagination button event listeners
+                const prevPageBtn = document.getElementById('prevPageBtn');
+                const nextPageBtn = document.getElementById('nextPageBtn');
+
+                if (prevPageBtn) {
+                    prevPageBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (!prevPageBtn.disabled && window.changePage) {
+                            window.changePage(-1);
+                        }
+                    });
+                }
+
+                if (nextPageBtn) {
+                    nextPageBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (!nextPageBtn.disabled && window.changePage) {
+                            window.changePage(1);
+                        }
+                    });
+                }
+
+                // Load and populate projects
+                const projects = await window.dashboardManager.loadAllProjects();
+                console.log('[Dashboard] Loaded projects for display:', projects.length);
+
+                // Populate both recent projects and table
+                window.dashboardManager.populateRecentProjects(projects);
+                window.dashboardTableManager.populateFilesTable(projects, 'all');
+                window.dashboardManager.updateProjectCounter(projects.length);
+
+                console.log('[Dashboard] All components initialized successfully');
+            } catch (error) {
+                console.error('[Dashboard] Initialization failed:', error);
+                // Show error state
+                const tableBody = document.getElementById('filesTableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = `
+                        <tr class="no-data-row">
+                            <td colspan="6" class="no-data-message">
+                                <div class="no-data-content">
+                                    <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">⚠️</div>
+                                    <p style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Error loading projects</p>
+                                    <p style="font-size: 0.9rem;">Please refresh the page to try again</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        });
+
+        /* =============================================================================
+           DEBUGGING UTILITIES
+           Helper functions for development and troubleshooting
+           ============================================================================= */
+
+        // Debug function to check session storage
+        function debugSessionStorage() {
+            console.log('[Dashboard Debug] Session Storage Contents:', {
+                project_site_address: sessionStorage.getItem('project_site_address'),
+                project_name: sessionStorage.getItem('project_name')
+            });
+        }
+
+        // Debug function to test modal functionality
+        function debugModal() {
+            console.log('[Dashboard Debug] Testing modal open/close');
+            openAddProjectModal();
+            setTimeout(() => {
+                closeAddProjectModal();
+            }, 2000);
+        }
+
+        // Debug function to make debug functions available in console
+        window.debugDashboard = {
+            sessionStorage: debugSessionStorage,
+            modal: debugModal,
+            filterProjects: filterProjects
+        };
+    </script>
+    <script>
+        // Ensure ADAM chat widget initializes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set authenticated class on body for ADAM widget
+            document.body.classList.add('authenticated');
+
+            // Initialize ADAM widget if not already initialized
+            if (typeof ADAMChatWidget !== 'undefined' && !window.adamChat) {
+                try {
+                    window.adamChat = new ADAMChatWidget();
+                    console.log('ADAM chat widget initialized successfully');
+                } catch (error) {
+                    console.error('Failed to initialize ADAM chat widget:', error);
+                }
+            }
+
+            // Debug profile picture display
+            const sidebarProfilePicture = document.getElementById('sidebarProfilePicture');
+            if (sidebarProfilePicture) {
+                console.log('Sidebar profile picture element found:', sidebarProfilePicture.innerHTML.trim());
+                console.log('User data from server:', {
+                    username: '{{ user.username if user else "N/A" }}',
+                    profile_picture: '{{ user.profile_picture if user and user.profile_picture else "N/A" }}',
+                    has_profile_picture: {{ "true" if user and user.profile_picture and user.profile_picture != "" and user.profile_picture != "None" and user.profile_picture != None else "false" }}
+                });
+
+                const img = sidebarProfilePicture.querySelector('img');
+                if (img) {
+                    console.log('Profile picture image found with src:', img.src);
+                    img.onload = function() {
+                        console.log('Profile picture loaded successfully');
+                    };
+                    img.onerror = function() {
+                        console.warn('Profile picture failed to load, falling back to initials');
+                        this.style.display = 'none';
+                        this.parentNode.innerHTML = '{{ user.username[0].upper() if user and user.username else "U" }}';
+                    };
+                } else {
+                    console.log('No profile picture image found, showing initials');
+                }
+            }
+        });
+    </script>
+    <style>
+        .modal-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .modal-form-input,
+        .modal-form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            color: #2d3748;
+        }
+
+        .modal-form-input:focus,
+        .modal-form-textarea:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .modal-form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            color: #2d3748;
+        }
+
+        .modal-form-select:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .modal-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+    </style>
+</body>
+</html>

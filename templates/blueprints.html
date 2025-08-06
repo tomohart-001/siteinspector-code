@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Blueprints - EngineRoom</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            height: 72px;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2rem;
+            height: 72px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .engine {
+            color: #547bf7;
+        }
+
+        .room {
+            color: #1a202c;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* User Dropdown Styles */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #1a202c;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .dropdown-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #1a202c;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .dropdown-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-toggle.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            min-width: 180px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .dropdown-item:hover {
+            background: #f7fafc;
+            color: #1a202c;
+        }
+
+        .dropdown-item.logout {
+            color: #e53e3e;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            margin-top: 4px;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fed7d7;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .nav-item.active {
+            border-bottom: 2px solid #4f7cff;
+            color: #000;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-primary {
+            background: #547bf7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4c51bf;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.25rem;
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+
+        /* Search and Filter Section */
+        .search-filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-filter-content {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .filter-dropdown {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            min-width: 180px;
+        }
+
+        /* Blueprints Grid */
+        .blueprints-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .blueprint-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .blueprint-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .blueprint-image {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+        }
+
+        .blueprint-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+        }
+
+        .carport-bg {
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+        }
+
+        .garage-bg {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+
+        .shed-bg {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+        }
+
+
+
+        .price-tag {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .price-tag.free {
+            background: #48bb78;
+            color: white;
+        }
+
+        .price-tag.paid {
+            background: #667eea;
+            color: white;
+        }
+
+        .blueprint-content {
+            padding: 1.5rem;
+        }
+
+        .blueprint-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1a202c;
+        }
+
+        .blueprint-description {
+            color: #718096;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .blueprint-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .usage-stats {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 1.5rem;
+        }
+
+        .customize-btn {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            padding: 0.75rem 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .customize-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(84, 123, 247, 0.3);
+        }
+
+        /* Footer */
+        .footer {
+            background: #2d3748;
+            color: #e2e8f0;
+            margin-top: 5rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem 2rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .footer-section h3, .footer-section h4 {
+            margin-bottom: 1rem;
+            color: #f7fafc;
+        }
+
+        .footer-brand p {
+            color: #a0aec0;
+            line-height: 1.6;
+            margin-top: 0.5rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: #a0aec0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: #f7fafc;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #4a5568;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-bottom p {
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-left {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding: 2rem 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .search-filter-content {
+                flex-direction: column;
+            }
+
+            .search-input,
+            .filter-dropdown {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .blueprints-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .blueprint-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="nav-left">
+                <a href="/" class="logo">
+                    <span class="engine">Engine</span><span class="room">Room</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="/blueprints" class="nav-item active">Project Blueprints</a>
+                    <a href="/toolshop" class="nav-item">Tool Shop</a>
+                </nav>
+            </div>
+            <div class="nav-right">
+                {% if user %}
+                    <div class="user-dropdown">
+                        <div class="dropdown-toggle" id="userDropdownToggle">
+                            <div class="user-avatar">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                {% else %}
+                                    {{ user.username[0].upper() }}
+                                {% endif %}
+                            </div>
+                            <span>{{ user.username }}</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </div>
+                        <div class="dropdown-menu" id="userDropdownMenu">
+                            <a href="/dashboard" class="dropdown-item">
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <span>Settings</span>
+                            </a>
+                            <form action="/logout" method="POST" style="display: contents;">
+                                <button type="submit" class="dropdown-item logout">
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="/login" class="btn btn-primary">Start Building</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Project Blueprints</h1>
+            <p class="page-subtitle">Discover and customize professional engineering blueprints for your projects</p>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <div class="search-filter-content">
+                <input type="text" class="search-input" placeholder="Search blueprints...">
+                <select class="filter-dropdown">
+                    <option value="">All Categories</option>
+                    <option value="carports">Carports</option>
+                    <option value="garages">Garages</option>
+                    <option value="sheds">Storage Sheds</option>
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Blueprints Grid -->
+        <div class="blueprints-grid">
+            <!-- Modern Steel Carport -->
+            <div class="blueprint-card">
+                <div class="blueprint-image">
+                    <div class="blueprint-placeholder carport-bg">
+                        <div class="price-tag free">Free</div>
+                    </div>
+                </div>
+                <div class="blueprint-content">
+                    <h3 class="blueprint-title">Modern Steel Carport</h3>
+                    <p class="blueprint-description">Sleek steel frame carport with optional solar panel integration</p>
+                    <div class="blueprint-stats">
+                        <span class="stat">1200 users</span>
+                        <span class="stat">45/50</span>
+                        <span class="stat">243/30d</span>
+                    </div>
+                    <div class="usage-stats">243 uses last 30 days</div>
+                    <button class="customize-btn">Customise Blueprint</button>
+                </div>
+            </div>
+
+            <!-- Traditional Garage -->
+            <div class="blueprint-card">
+                <div class="blueprint-image">
+                    <div class="blueprint-placeholder garage-bg">
+                        <div class="price-tag free">Free</div>
+                    </div>
+                </div>
+                <div class="blueprint-content">
+                    <h3 class="blueprint-title">Traditional Garage</h3>
+                    <p class="blueprint-description">Classic wooden garage with customizable door configurations</p>
+                    <div class="blueprint-stats">
+                        <span class="stat">856 users</span>
+                        <span class="stat">42/50</span>
+                        <span class="stat">168/30d</span>
+                    </div>
+                    <div class="usage-stats">168 uses last 30 days</div>
+                    <button class="customize-btn">Customise Blueprint</button>
+                </div>
+            </div>
+
+            <!-- Industrial Storage Shed -->
+            <div class="blueprint-card">
+                <div class="blueprint-image">
+                    <div class="blueprint-placeholder shed-bg">
+                        <div class="price-tag paid">$1200</div>
+                    </div>
+                </div>
+                <div class="blueprint-content">
+                    <h3 class="blueprint-title">Industrial Storage Shed</h3>
+                    <p class="blueprint-description">Heavy-duty metal shed with concrete foundation options</p>
+                    <div class="blueprint-stats">
+                        <span class="stat">432 users</span>
+                        <span class="stat">48/50</span>
+                        <span class="stat">89/30d</span>
+                    </div>
+                    <div class="usage-stats">89 uses last 30 days</div>
+                    <button class="customize-btn">Customise Blueprint</button>
+                </div>
+            </div>
+
+            <!-- Residential Foundation -->
+            <div class="blueprint-card">
+                <div class="blueprint-image">
+                    <div class="blueprint-placeholder" style="background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);">
+                        <div class="price-tag free">Free</div>
+                    </div>
+                </div>
+                <div class="blueprint-content">
+                    <h3 class="blueprint-title">Residential Foundation</h3>
+                    <p class="blueprint-description">Standard concrete slab foundation with reinforcement details</p>
+                    <div class="blueprint-stats">
+                        <span class="stat">923 users</span>
+                        <span class="stat">46/50</span>
+                        <span class="stat">156/30d</span>
+                    </div>
+                    <div class="usage-stats">156 uses last 30 days</div>
+                    <button class="customize-btn">Customise Blueprint</button>
+                </div>
+            </div>
+
+            <!-- Commercial Warehouse -->
+            <div class="blueprint-card">
+                <div class="blueprint-image">
+                    <div class="blueprint-placeholder" style="background: linear-gradient(135deg, #fef5e7 0%, #fbd38d 100%);">
+                        <div class="price-tag paid">$2500</div>
+                    </div>
+                </div>
+                <div class="blueprint-content">
+                    <h3 class="blueprint-title">Commercial Warehouse</h3>
+                    <p class="blueprint-description">Large-scale steel frame warehouse with loading dock specifications</p>
+                    <div class="blueprint-stats">
+                        <span class="stat">287 users</span>
+                        <span class="stat">49/50</span>
+                        <span class="stat">34/30d</span>
+                    </div>
+                    <div class="usage-stats">34 uses last 30 days</div>
+                    <button class="customize-btn">Customise Blueprint</button>
+                </div>
+            </div>
+
+            <!-- Retaining Wall -->
+            <div class="blueprint-card">
+                <div class="blueprint-image">
+                    <div class="blueprint-placeholder" style="background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);">
+                        <div class="price-tag free">Free</div>
+                    </div>
+                </div>
+                <div class="blueprint-content">
+                    <h3 class="blueprint-title">Retaining Wall System</h3>
+                    <p class="blueprint-description">Engineered concrete retaining wall with drainage specifications</p>
+                    <div class="blueprint-stats">
+                        <span class="stat">654 users</span>
+                        <span class="stat">44/50</span>
+                        <span class="stat">78/30d</span>
+                    </div>
+                    <div class="usage-stats">78 uses last 30 days</div>
+                    <button class="customize-btn">Customise Blueprint</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-brand">
+                    <h3>EngineRoom</h3>
+                    <p>Empowering engineers with collaborative tools and resources for physical engineering projects</p>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="#marketplace">Marketplace</a></li>
+                    <li><a href="#workspace">Workspace</a></li>
+                    <li><a href="#community">Community</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#documentation">Documentation</a></li>
+                    <li><a href="#api-reference">API Reference</a></li>
+                    <li><a href="#tutorials">Tutorials</a></li>
+                    <li><a href="#support">Support</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#careers">Careers</a></li>
+                    <li><a href="#privacy">Privacy</a></li>
+                    <li><a href="#terms">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2025 EngineRoom Labs. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // User dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownToggle = document.getElementById('userDropdownToggle');
+            const dropdownMenu = document.getElementById('userDropdownMenu');
+
+            if (dropdownToggle && dropdownMenu) {
+                dropdownToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Toggle dropdown
+                    dropdownToggle.classList.toggle('active');
+                    dropdownMenu.classList.toggle('show');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownToggle.classList.remove('active');
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+
+                // Prevent dropdown from closing when clicking inside
+                dropdownMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.blueprint-card');
+
+            cards.forEach(card => {
+                const title = card.querySelector('.blueprint-title').textContent.toLowerCase();
+                const description = card.querySelector('.blueprint-description').textContent.toLowerCase();
+
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter functionality
+        document.querySelector('.filter-dropdown').addEventListener('change', function(e) {
+            const filterValue = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.blueprint-card');
+
+            cards.forEach(card => {
+                const title = card.querySelector('.blueprint-title').textContent.toLowerCase();
+
+                if (!filterValue || title.includes(filterValue) || 
+                    (filterValue === 'carports' && title.includes('carport')) ||
+                    (filterValue === 'garages' && title.includes('garage')) ||
+                    (filterValue === 'sheds' && title.includes('shed')) ||
+                    (filterValue === 'residential' && (title.includes('residential') || title.includes('foundation'))) ||
+                    (filterValue === 'commercial' && (title.includes('commercial') || title.includes('warehouse')))) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Customize button functionality
+        document.querySelectorAll('.customize-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.blueprint-card');
+                const title = card.querySelector('.blueprint-title').textContent;
+                alert(`Customizing ${title}... This will redirect to the blueprint customizer.`);
+                // TODO: Implement actual blueprint customization
+            });
+        });
+    </script>
+</body>
+</html>

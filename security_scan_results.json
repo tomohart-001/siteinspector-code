@@ -1,0 +1,410 @@
+{
+  "timestamp": "2025-07-20T12:36:18.816570",
+  "scan_results": {
+    "secrets": {
+      "total_secrets_found": 42,
+      "secrets": [
+        {
+          "type": "password",
+          "file": "./.cache/uv/archive-v0/hWBb7eLhDPPr_3L1TTfMq/starlette/datastructures.py",
+          "line": 174,
+          "match": "password=\"********\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.cache/uv/archive-v0/Nqq1OgoLSq1I2MFejvTSr/httpx/_urls.py",
+          "line": 336,
+          "match": "password=\"a secret\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth1/rfc5849/authorization_server.py",
+          "line": 215,
+          "match": "token=\"hh5s93j4hdidpola\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth1/rfc5849/signature.py",
+          "line": 39,
+          "match": "token=\"kkk9d7dh3k39sjv7\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth2/rfc6749/grants/authorization_code.py",
+          "line": 261,
+          "match": "token\":\"2YotnFZFEjr1zCsicMWpAA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth2/rfc6749/grants/authorization_code.py",
+          "line": 264,
+          "match": "token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth2/rfc6749/grants/client_credentials.py",
+          "line": 96,
+          "match": "token\":\"2YotnFZFEjr1zCsicMWpAA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth2/rfc6749/grants/resource_owner_password_credentials.py",
+          "line": 130,
+          "match": "token\":\"2YotnFZFEjr1zCsicMWpAA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth2/rfc6749/grants/resource_owner_password_credentials.py",
+          "line": 133,
+          "match": "token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth2/rfc6750/token.py",
+          "line": 16,
+          "match": "token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.cache/uv/archive-v0/vs3V4kXcc8Xmb2bHxidy3/pydantic/types.py",
+          "line": 1819,
+          "match": "password='password1'",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.cache/uv/archive-v0/vs3V4kXcc8Xmb2bHxidy3/pydantic/types.py",
+          "line": 1846,
+          "match": "password='IAmSensitive'",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.cache/uv/archive-v0/vs3V4kXcc8Xmb2bHxidy3/pydantic/types.py",
+          "line": 1859,
+          "match": "password\":\"IAmSensitive\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.cache/uv/archive-v0/x8nAlYu87xIXMO7kcrmTY/cryptography/hazmat/_oid.py",
+          "line": 347,
+          "match": "PASSWORD: \"challengePassword\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/moGp1SnWM9FSttMzLyF9o/grpc/_server.py",
+          "line": 63,
+          "match": "TOKEN = \"receive_close_on_server\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/moGp1SnWM9FSttMzLyF9o/grpc/_server.py",
+          "line": 64,
+          "match": "TOKEN = \"send_initial_metadata\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/moGp1SnWM9FSttMzLyF9o/grpc/_server.py",
+          "line": 70,
+          "match": "TOKEN = \"send_status_from_server\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.cache/uv/archive-v0/NiooB85pKJlmogSbRwvV4/numpy/distutils/mingw32ccompiler.py",
+          "line": 529,
+          "match": "Token=\"1fc8b3b9a1e18e3b\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "api_key",
+          "file": "./services/property_service.py",
+          "line": 19,
+          "match": "api_key = \"ee75495c68314097b262297e1af6f899",
+          "severity": "HIGH"
+        },
+        {
+          "type": "api_key",
+          "file": "./services/terrain_service.py",
+          "line": 39,
+          "match": "api_key = \"ee75495c68314097b262297e1af6f899",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./templates/signup-account.html",
+          "line": 430,
+          "match": "password: '[HIDDEN]'",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./templates/signup-account.html",
+          "line": 431,
+          "match": "password: '[HIDDEN]'",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/starlette/datastructures.py",
+          "line": 174,
+          "match": "password=\"********\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/httpx/_urls.py",
+          "line": 336,
+          "match": "password=\"a secret\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth1/rfc5849/authorization_server.py",
+          "line": 215,
+          "match": "token=\"hh5s93j4hdidpola\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth1/rfc5849/signature.py",
+          "line": 39,
+          "match": "token=\"kkk9d7dh3k39sjv7\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth2/rfc6749/grants/authorization_code.py",
+          "line": 261,
+          "match": "token\":\"2YotnFZFEjr1zCsicMWpAA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth2/rfc6749/grants/authorization_code.py",
+          "line": 264,
+          "match": "token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth2/rfc6749/grants/client_credentials.py",
+          "line": 96,
+          "match": "token\":\"2YotnFZFEjr1zCsicMWpAA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth2/rfc6749/grants/resource_owner_password_credentials.py",
+          "line": 130,
+          "match": "token\":\"2YotnFZFEjr1zCsicMWpAA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth2/rfc6749/grants/resource_owner_password_credentials.py",
+          "line": 133,
+          "match": "token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/authlib/oauth2/rfc6750/token.py",
+          "line": 16,
+          "match": "token\":\"tGzv3JOkF0XG5Qx2TlKWIA\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/cryptography/hazmat/_oid.py",
+          "line": 347,
+          "match": "PASSWORD: \"challengePassword\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/grpc/_server.py",
+          "line": 63,
+          "match": "TOKEN = \"receive_close_on_server\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/grpc/_server.py",
+          "line": 64,
+          "match": "TOKEN = \"send_initial_metadata\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/grpc/_server.py",
+          "line": 70,
+          "match": "TOKEN = \"send_status_from_server\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/pydantic/types.py",
+          "line": 1819,
+          "match": "password='password1'",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/pydantic/types.py",
+          "line": 1846,
+          "match": "password='IAmSensitive'",
+          "severity": "HIGH"
+        },
+        {
+          "type": "password",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/pydantic/types.py",
+          "line": 1859,
+          "match": "password\":\"IAmSensitive\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "secret",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/numpy/distutils/mingw32ccompiler.py",
+          "line": 529,
+          "match": "Token=\"1fc8b3b9a1e18e3b\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "api_key",
+          "file": "services/property_service.py",
+          "line": 19,
+          "match": "api_key = \"ee75495c68314097b262297e1af6f899",
+          "severity": "HIGH"
+        },
+        {
+          "type": "api_key",
+          "file": "services/terrain_service.py",
+          "line": 39,
+          "match": "api_key = \"ee75495c68314097b262297e1af6f899",
+          "severity": "HIGH"
+        }
+      ],
+      "severity": "HIGH"
+    },
+    "sql_injection": {
+      "total_vulnerabilities": 8,
+      "vulnerabilities": [
+        {
+          "type": "SQL Injection",
+          "file": "./.cache/uv/archive-v0/E9gbxh1Y8KM2rNSvQTulr/werkzeug/urls.py",
+          "line": 56,
+          "code": "query = _make_unquote_part(\"query\", _always_unsafe + \"&=+#\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "SQL Injection",
+          "file": "./.cache/uv/archive-v0/E9gbxh1Y8KM2rNSvQTulr/werkzeug/urls.py",
+          "line": 142,
+          "code": "query = quote(parts.query, safe=\"%!$&'()*+,/:;=?@\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "SQL Injection",
+          "file": "./.cache/uv/archive-v0/m54qgqwgZWIXiq4kQj6BX/pygments/lexers/ldap.py",
+          "line": 114,
+          "code": "query=ldap.conf&sektion=5&apropos=0&manpath=OpenLDAP+2.4-Release'",
+          "severity": "HIGH"
+        },
+        {
+          "type": "SQL Injection",
+          "file": "./.cache/uv/archive-v0/_esDHacSZr-UeCnUbVwHY/psycopg2/_json.py",
+          "line": 187,
+          "code": "execute(\n        \"SELECT t.oid, %s FROM pg_type t WHERE t.typname = %%s;\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "SQL Injection",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/psycopg2/_json.py",
+          "line": 187,
+          "code": "execute(\n        \"SELECT t.oid, %s FROM pg_type t WHERE t.typname = %%s;\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "SQL Injection",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/werkzeug/urls.py",
+          "line": 56,
+          "code": "query = _make_unquote_part(\"query\", _always_unsafe + \"&=+#\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "SQL Injection",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/werkzeug/urls.py",
+          "line": 142,
+          "code": "query = quote(parts.query, safe=\"%!$&'()*+,/:;=?@\"",
+          "severity": "HIGH"
+        },
+        {
+          "type": "SQL Injection",
+          "file": "./.pythonlibs/lib/python3.11/site-packages/pygments/lexers/ldap.py",
+          "line": 114,
+          "code": "query=ldap.conf&sektion=5&apropos=0&manpath=OpenLDAP+2.4-Release'",
+          "severity": "HIGH"
+        }
+      ],
+      "severity": "HIGH"
+    },
+    "xss_vulnerabilities": {
+      "total_vulnerabilities": 0,
+      "vulnerabilities": [],
+      "severity": "LOW"
+    },
+    "command_injection": {
+      "total_vulnerabilities": 0,
+      "vulnerabilities": [],
+      "severity": "LOW"
+    },
+    "dependencies": {
+      "total_issues": 0,
+      "issues": [],
+      "severity": "LOW"
+    },
+    "file_permissions": {
+      "total_issues": 0,
+      "issues": [],
+      "severity": "LOW"
+    },
+    "environment": {
+      "total_issues": 2,
+      "issues": [
+        {
+          "type": "Missing Security Headers",
+          "message": "Consider adding security headers configuration",
+          "severity": "LOW"
+        },
+        {
+          "type": "Session Security",
+          "message": "Consider enabling secure session cookies",
+          "severity": "LOW"
+        }
+      ],
+      "severity": "MEDIUM"
+    }
+  },
+  "summary": {
+    "scan_completed": true,
+    "timestamp": "2025-07-20T12:38:12.437774",
+    "total_vulnerabilities": 0,
+    "total_warnings": 0,
+    "recommendation": "Review all HIGH severity issues before deployment"
+  }
+}

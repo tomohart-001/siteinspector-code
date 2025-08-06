@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structural Analyser - EngineRoom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+
+        /* Header Styles */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 16px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 2000;
+            height: 60px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-title {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            color: #cccccc;
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin: 2px 0 0 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .header-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 60px;
+            padding: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            min-height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .analysis-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-panel {
+            background: rgba(42, 42, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0 0 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+            text-align: left;
+            align-self: flex-start;
+            width: 100%;
+            position: relative;
+            top: 0;
+            order: -1;
+        }
+
+        .input-section {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #cccccc;
+            margin: 0 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: left;
+            padding: 0;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #cccccc;
+            margin-bottom: 4px;
+        }
+
+        .input-field, .select-field {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-field:focus, .select-field:focus {
+            outline: none;
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #4a6cf7 0%, #3a5ae0 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+        }
+
+        .action-button:hover {
+            background: linear-gradient(135deg, #5a7cff 0%, #4a6cf7 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(74, 108, 247, 0.3);
+        }
+
+        .secondary-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .secondary-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Results Panel */
+        .results-panel {
+            display: none;
+            grid-column: 1 / -1;
+        }
+
+        .results-panel.show {
+            display: block;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .result-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a6cf7;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .result-caption {
+            font-size: 12px;
+            color: #cccccc;
+        }
+
+        .calculations-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+            text-align: left;
+        }
+
+        .calculations-table th,
+        .calculations-table td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .calculations-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #cccccc;
+        }
+
+        .calculations-table td {
+            color: #ffffff;
+        }
+
+        .status-success, .status-pass {
+            color: #28a745;
+        }
+
+        .status-warning {
+            color: #ffc107;
+        }
+
+        .status-error, .status-fail {
+            color: #dc3545;
+        }
+
+        .status-info {
+            color: #17a2b8;
+        }
+
+        /* Table cell background colors for design checks */
+        .calculations-table td.status-pass {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .calculations-table td.status-fail {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .calculations-table td.status-warning {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .calculations-table td.status-info {
+            background-color: rgba(23, 162, 184, 0.2);
+            color: #17a2b8;
+            font-weight: 600;
+        }
+
+        /* Highlighting for maximum values in load cases table */
+        .calculations-table tr.max-value-row {
+            background-color: rgba(255, 255, 0, 0.15);
+        }
+
+        .calculations-table td.max-moment {
+            background-color: rgba(255, 255, 0, 0.3);
+            font-weight: 600;
+        }
+
+        .calculations-table td.max-shear {
+            background-color: rgba(255, 255, 0, 0.3);
+            font-weight: 600;
+        }
+
+        .working-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #cccccc;
+            white-space: pre-wrap;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Results section specific styling */
+        .results-section {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .results-header {
+            align-self: flex-start;
+            width: 100%;
+            text-align: left;
+            margin: 0 0 16px 0;
+            padding: 0;
+            position: relative;
+            top: 0;
+        }
+
+        @media (max-width: 768px) {
+            .analysis-container {
+                grid-template-columns: 1fr;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Site Header -->
+    <div class="site-header">
+        <div class="header-left">
+            <div class="header-title-section">
+                <h1 class="header-title">Structural Analyser</h1>
+                <p class="header-subtitle">Member analysis and design verification</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="/structure-designer" class="header-nav-btn">← Structure Designer</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="analysis-container">
+            <!-- Analysis Inputs Panel -->
+            <div class="analysis-panel" id="inputsPanel">
+                <h2 class="panel-title">Design & Material Inputs</h2>
+
+                <!-- Member Information -->
+                <div class="input-section">
+                    <div class="section-title">Selected Member</div>
+                    <div class="input-group full-width">
+                        <label>Member Type & Location</label>
+                        <input type="text" id="memberInfo" class="input-field" readonly 
+                               value="{{ member_info or 'No member selected' }}">
+                    </div>
+                </div>
+
+                <!-- Steel Properties -->
+                <div class="input-section">
+                    <div class="section-title">Steel Properties</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="steelDesignation">Steel Designation</label>
+                            <select id="steelDesignation" class="select-field">
+                                <option value="760UB173">760UB173</option>
+                                <option value="610UB125">610UB125</option>
+                                <option value="460UB82">460UB82</option>
+                                <option value="310UB32">310UB32</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="steelDensity">Steel Density (kg/m³)</label>
+                            <input type="number" id="steelDensity" class="input-field" value="7850" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="yieldStrength">Yield Strength (MPa)</label>
+                            <input type="number" id="yieldStrength" class="input-field" value="300" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="modulusElasticity">Modulus of Elasticity (GPa)</label>
+                            <input type="number" id="modulusElasticity" class="input-field" value="200" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Properties -->
+                <div class="input-section">
+                    <div class="section-title">Section Properties</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="sectionArea">Section Area (mm²)</label>
+                            <input type="number" id="sectionArea" class="input-field" value="22000" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="sectionDepth">Section Depth (mm)</label>
+                            <input type="number" id="sectionDepth" class="input-field" value="770" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="momentInertiaX">I_x (mm⁴)</label>
+                            <input type="number" id="momentInertiaX" class="input-field" value="2800000000" step="1000000">
+                        </div>
+                        <div class="input-group">
+                            <label for="momentInertiaY">I_y (mm⁴)</label>
+                            <input type="number" id="momentInertiaY" class="input-field" value="106000000" step="1000000">
+                        </div>
+                        <div class="input-group">
+                            <label for="sectionModulusX">Z_x (mm³)</label>
+                            <input type="number" id="sectionModulusX" class="input-field" value="7270000" step="1000">
+                        </div>
+                        <div class="input-group">
+                            <label for="sectionModulusY">Z_y (mm³)</label>
+                            <input type="number" id="sectionModulusY" class="input-field" value="794000" step="1000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member Dimensions -->
+                <div class="input-section">
+                    <div class="section-title">Member Dimensions</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="memberLength">Member Length (m)</label>
+                            <input type="number" id="memberLength" class="input-field" value="6.0" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="tributaryWidth">Tributary Width (m)</label>
+                            <input type="number" id="tributaryWidth" class="input-field" value="3.0" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="memberStorey">Member Storey</label>
+                            <input type="number" id="memberStorey" class="input-field" value="1" min="1" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="totalStoreys">Total Storeys</label>
+                            <input type="number" id="totalStoreys" class="input-field" value="3" min="1" step="1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Loads Panel -->
+            <div class="analysis-panel" id="loadsPanel">
+                <h2 class="panel-title">Loading Inputs</h2>
+
+                <!-- Support Conditions & Loading Type -->
+                <div class="input-section">
+                    <div class="section-title">Analysis Parameters</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="supportConditions">Support Conditions</label>
+                            <select id="supportConditions" class="select-field">
+                                <option value="simply_supported">Simply Supported</option>
+                                <option value="fixed_fixed">Fixed-Fixed</option>
+                                <option value="fixed_pinned">Fixed-Pinned</option>
+                                <option value="cantilever">Cantilever</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="loadingType">Loading Type</label>
+                            <select id="loadingType" class="select-field">
+                                <option value="udl">Uniformly Distributed Load (UDL)</option>
+                                <option value="point_load">Point Load</option>
+                                <option value="varying_load">Varying Load</option>
+                                <option value="combined_load">Combined Load</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Loads - Roof -->
+                <div class="input-section">
+                    <div class="section-title">Live Loads - Roof (kPa)</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="roofOccupancy">Occupancy Load</label>
+                            <input type="number" id="roofOccupancy" class="input-field" value="0.25" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="snowLoad">Snow Load</label>
+                            <input type="number" id="snowLoad" class="input-field" value="0.9" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="windLoad">Wind Load</label>
+                            <input type="number" id="windLoad" class="input-field" value="0.6" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="maintenanceLoad">Maintenance Load</label>
+                            <input type="number" id="maintenanceLoad" class="input-field" value="0.25" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Loads - Floor -->
+                <div class="input-section">
+                    <div class="section-title">Live Loads - Floor (kPa)</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="floorOccupancy">Occupancy Load</label>
+                            <input type="number" id="floorOccupancy" class="input-field" value="2.5" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="seismicLoad">Seismic Load</label>
+                            <input type="number" id="seismicLoad" class="input-field" value="0.5" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dead Loads -->
+                <div class="input-section">
+                    <div class="section-title">Dead Loads (kPa)</div>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="floorDeadLoad">Floor Dead Load</label>
+                            <input type="number" id="floorDeadLoad" class="input-field" value="1.5" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="slabSelfWeight">Slab Self Weight</label>
+                            <input type="number" id="slabSelfWeight" class="input-field" value="2.5" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="input-section">
+                    <button id="runAnalysisBtn" class="action-button">Run Analyse</button>
+                    <button id="resetInputsBtn" class="secondary-button">Reset to Defaults</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="analysis-panel results-panel" id="resultsPanel">
+            <h2 class="panel-title">Analyse Results</h2>
+
+            <!-- Summary Cards -->
+            <div class="results-grid" id="summaryCards">
+                <!-- Cards will be populated by JavaScript -->
+            </div>
+
+            <!-- Detailed Results -->
+            <div class="input-section results-section">
+                <div class="section-title results-header">Load Cases & Member Forces</div>
+                <div id="loadCasesTable"></div>
+            </div>
+
+            <div class="input-section results-section">
+                <div class="section-title results-header">Design Checks</div>
+                <div id="designChecksTable"></div>
+            </div>
+
+            <div class="input-section results-section">
+                <div class="section-title results-header">Calculation Working</div>
+                <div id="calculationWorking" class="working-section"></div>
+            </div>
+
+            <div class="input-section">
+                <button id="exportResultsBtn" class="action-button">Export Results</button>
+                <button id="newAnalysisBtn" class="secondary-button">New Analyse</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/structural-analyser.js') }}"></script>
+</body>
+</html>

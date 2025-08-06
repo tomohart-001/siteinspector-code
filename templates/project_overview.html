@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} - EngineRoom</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='ER Logo_1749447115584.png') }}">
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #2d3748;
+            overflow-x: hidden;
+        }
+
+        /* Fixed Header */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            height: 80px;
+        }
+
+        .header-content {
+            max-width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 48px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #547bf7;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: #718096;
+        }
+
+        .header-cta-btn {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            height: 40px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-cta-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        /* Main Layout Container */
+        .page-container {
+            display: flex;
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            margin-right: 320px; /* Make room for fixed sidebar */
+            min-width: 0;
+        }
+
+        /* Fixed Right Sidebar */
+        .history-sidebar {
+            position: fixed;
+            top: 80px;
+            right: 0;
+            width: 320px;
+            height: calc(100vh - 80px);
+            background: white;
+            border-left: 1px solid #e2e8f0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .history-header {
+            padding: 2rem 2rem 1rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .history-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .history-content {
+            padding: 1rem 2rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .history-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-description {
+            font-size: 0.85rem;
+            color: #2d3748;
+            line-height: 1.4;
+            margin-bottom: 0.25rem;
+        }
+
+        .history-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        .history-user {
+            font-weight: 600;
+            color: #547bf7;
+        }
+
+        /* Project Header Card */
+        .project-header-card {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .project-title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0;
+        }
+
+        .project-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .project-address {
+            color: #718096;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .project-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .project-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .meta-value {
+            font-size: 0.9rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        .btn-add {
+            background: #547bf7;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover {
+            background: #4c51bf;
+        }
+
+        /* Overview Grid */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Team Member Cards */
+        .team-member {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .team-member:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #547bf7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .member-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.9rem;
+            margin-bottom: 0.125rem;
+        }
+
+        .member-role {
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        /* Notes */
+        .note-item {
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .note-item:hover {
+            border-color: #cbd5e0;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .note-author {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.875rem;
+        }
+
+        .note-date {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        .note-text {
+            color: #4a5568;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        /* Forms */
+        .add-note-form {
+            margin-top: 1rem;
+            display: none;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .add-note-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: inherit;
+            resize: vertical;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 3rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Settings Button */
+        .settings-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .settings-btn:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e0;
+            transform: translateY(-1px);
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-modal.active {
+            display: flex;
+        }
+
+        .settings-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .settings-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            color: #718096;
+        }
+
+        .close-btn:hover {
+            background: #f7fafc;
+            color: #4a5568;
+        }
+
+        .settings-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .settings-form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            color: #2d3748;
+        }
+
+        .settings-form-select:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .settings-form-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-save {
+            background: #547bf7;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #4c51bf;
+        }
+
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #cbd5e0;
+        }
+
+        /* Active Badge */
+        .active-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 600;
+            padding: 0.125rem 0.375rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        /* Project Snapshot Styles */
+        .snapshot-section {
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+        }
+
+        .snapshot-header {
+            padding: 1.5rem 2rem 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .snapshot-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .snapshot-type {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #547bf7;
+            background: #eff6ff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+        }
+
+        .snapshot-content {
+            padding: 0 2rem 1.5rem 2rem;
+        }
+
+        .snapshot-preview {
+            background: transparent;
+            border: none;
+            padding: 32px 0 0 0;
+            margin: 0;
+            text-align: center;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Hide Mapbox attribution and logo */
+        .mapboxgl-ctrl-logo,
+        .mapboxgl-ctrl-attrib,
+        .mapboxgl-ctrl-attrib-button,
+        .mapboxgl-ctrl-attrib-inner {
+            display: none !important;
+        }
+
+        .snapshot-placeholder {
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .snapshot-icon {
+            font-size: 3rem;
+            color: #718096;
+            opacity: 0.3;
+        }
+
+        .snapshot-description {
+            font-size: 0.85rem;
+            color: #4a5568;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+        }
+
+        .snapshot-meta {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        .snapshot-image {
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            max-height: 150px;
+            object-fit: cover;
+        }
+
+        .snapshot-stats {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .snapshot-stats span {
+            display: inline-block;
+            margin: 0.125rem 0;
+        }
+
+        .status-complete {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .status-warning {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .status-error {
+            color: #ef4444;
+            font-weight: 600;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adam-chat-widget.css') }}">
+</head>
+<body class="authenticated">
+    <!-- Fixed Header -->
+    <div class="fixed-header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/dashboard">Dashboard</a>
+                <span>/</span>
+                <span>{{ project.name }}</span>
+            </div>
+            <a href="{{ flow_step.route_url }}?project={{ project.id }}" class="header-cta-btn">{{ flow_step.button_text }}</a>
+        </div>
+    </div>
+
+    <!-- Main Page Container -->
+    <div class="page-container">
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Project Header Card -->
+            <div class="project-header-card" style="position: relative; overflow: hidden;">
+                <div class="project-title-section" style="padding: 2rem 2rem 0 2rem;">
+                    <div>
+                        <h1 class="project-title">{{ project.name }}</h1>
+                        <p class="project-address">{{ project.address }}</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="project-status status-{{ project.status }}">{{ project.status }}</span>
+                        <button class="settings-btn" onclick="openProjectSettings()" title="Project Settings">
+                            ⚙️
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Site Boundary Preview Section -->
+                <div class="snapshot-preview" id="snapshotPreview" style="height: 400px; margin: 0; position: relative; background: #f8f9fa; border-radius: 8px; overflow: hidden;">
+                    <!-- Snapshot will be loaded here by JavaScript -->
+                    <div class="snapshot-placeholder">
+                        <div class="snapshot-icon">📋</div>
+                    </div>
+                </div>
+
+                <div class="project-meta-grid" style="padding: 2rem 2rem 2rem 2rem;">
+                    <div class="meta-item">
+                        <span class="meta-label">Project Number</span>
+                        <span class="meta-value">{{ project.project_number or 'Not assigned' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Client</span>
+                        <span class="meta-value">{{ project.client_name or 'Not specified' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Project Type</span>
+                        <span class="meta-value">{{ project.project_type or 'Not specified' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Owner</span>
+                        <span class="meta-value">{{ project.owner }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Created</span>
+                        <span class="meta-value">
+                            {% if project.created_at %}
+                                {% if project.created_at.__class__.__name__ == 'datetime' %}
+                                    {{ project.created_at.strftime('%B %d, %Y') }}
+                                {% else %}
+                                    {{ project.created_at }}
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Last Modified</span>
+                        <span class="meta-value">
+                            {% if project.updated_at %}
+                                {% if project.updated_at.__class__.__name__ == 'datetime' %}
+                                    {{ project.updated_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                {% else %}
+                                    {{ project.updated_at }}
+                                {% endif %}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engineering Flow Progress Indicator -->
+            <div class="content-card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <h3 class="card-title">Engineering Flow Progress</h3>
+                </div>
+                <div class="card-content">
+                    <div class="flow-progress">
+                        <div class="progress-steps">
+                            <div class="progress-step {{ 'completed' if flow_step.current_step > 1 else 'current' if flow_step.current_step == 1 else '' }} clickable" onclick="navigateToStep(1, {{ project.id }})">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Site Inspector</div>
+                            </div>
+                            <div class="progress-connector {{ 'completed' if flow_step.current_step > 1 else '' }}"></div>
+
+                            <div class="progress-step {{ 'completed' if flow_step.current_step > 2 else 'current' if flow_step.current_step == 2 else '' }} clickable" onclick="navigateToStep(2, {{ project.id }})">
+                                <div class="step-circle">2</div>
+                                <div class="step-label">Cut &amp; Fill Analysis</div>
+                            </div>
+                            <div class="progress-connector {{ 'completed' if flow_step.current_step > 2 else '' }}"></div>
+
+                            <div class="progress-step {{ 'completed' if flow_step.current_step > 3 else 'current' if flow_step.current_step == 3 else '' }} clickable" onclick="navigateToStep(3, {{ project.id }})">
+                                <div class="step-circle">3</div>
+                                <div class="step-label">Structural Designer</div>
+                            </div>
+                            <div class="progress-connector {{ 'completed' if flow_step.current_step > 3 else '' }}"></div>
+
+                            <div class="progress-step {{ 'completed' if flow_step.current_step > 4 else 'current' if flow_step.current_step == 4 else '' }} clickable" onclick="navigateToStep(4, {{ project.id }})">
+                                <div class="step-circle">4</div>
+                                <div class="step-label">Structure Analyser</div>
+                            </div>
+                        </div>
+
+                        <div class="progress-summary">
+                            <p>Currently on: <strong>{{ flow_step.step_name }}</strong></p>
+                            {% if flow_step.current_step < 4 %}
+                                <p>Next: {{ flow_step.next_step_name }}</p>
+                            {% else %}
+                                <p>Engineering flow completed! ✅</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Profile Card -->
+            <div class="content-card team-profile">
+                <div class="card-header">
+                    <h3 class="card-title">Team Profile</h3>
+                </div>
+                <div class="card-content">
+                    <!-- Project Owner -->
+                    <div class="team-member">
+                        <div class="member-avatar">
+                        {% if user and user.profile_picture %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture.split('/')[-1]) }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {% else %}
+                            {{ project.owner[0].upper() if project.owner else 'U' }}
+                        {% endif %}
+                    </div>
+                        <div class="member-info">
+                            <div class="member-name">
+                                {{ project.owner }}
+                                {% if user and user.username == project.owner %}
+                                    <span class="active-badge">Active</span>
+                                {% endif %}
+                            </div>
+                            <div class="member-role">Project Owner</div>
+                        </div>
+                    </div>
+
+                    <!-- Team Members -->
+                    {% if team_members %}
+                        {% for member in team_members %}
+                            <div class="team-member">
+                                <div class="member-avatar">
+                                    {% if member.profile_picture %}
+                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + member.profile_picture.split('/')[-1]) }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                    {% else %}
+                                        {{ member.display_name[0].upper() if member.display_name else 'U' }}
+                                    {% endif %}
+                                </div>
+                                <div class="member-info">
+                                    <div class="member-name">
+                                        {{ member.display_name }}
+                                        {% if user and user.id == member.id %}
+                                            <span class="active-badge">Active</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="member-role">{{ member.role or 'Team Member' }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>{% else %}
+                            <div class="no-data">Project not shared with team members yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fixed Right Sidebar for Project History -->
+        <div class="history-sidebar">
+            <div class="history-header">
+                <h3 class="history-title">Project History</h3>
+            </div>
+            <div class="history-content">
+                {% if project_history %}
+                    {% for event in project_history %}
+                        <div class="history-item">
+                            <div class="history-icon">
+                                {% if event.event_type == 'created' %}
+                                    📋
+                                {% elif event.event_type == 'note_added' %}
+                                    📝
+                                {% elif event.event_type == 'comment_added' %}
+                                    💬
+                                {% elif event.event_type == 'member_joined' %}
+                                    👥
+                                {% elif event.event_type == 'status_changed' %}
+                                    🔄
+                                {% else %}
+                                    📌
+                                {% endif %}
+                            </div>
+                            <div class="history-details">
+                                <div class="history-description">{{ event.description }}</div>
+                                <div class="history-meta">                                    <span class="history-user">{{ event.user_name }}</span>
+                                    <span>•</span>
+                                    <span>
+                                        {% if event.created_at %}
+                                            {% if event.created_at.__class__.__name__ == 'datetime' %}
+                                                {{ event.created_at.strftime('%b %d at %I:%M %p') }}
+                                            {% else %}
+                                                {{ event.created_at }}
+                                            {% endif %}
+                                        {% else %}
+                                            Unknown time
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                        <p>Project history will appear here</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Settings Modal -->
+    <div class="settings-modal" id="projectSettingsModal">
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h3 class="settings-modal-title">Project Settings</h3>
+                <button class="close-btn" onclick="closeProjectSettings()">×</button>
+            </div>
+
+            <form id="projectSettingsForm" onsubmit="saveProjectSettings(event)">
+                <div class="settings-form-group">
+                    <label class="settings-form-label" for="projectUnits">Units</label>
+                    <select class="settings-form-select" id="projectUnits" name="units">
+                        <option value="metric" {{ 'selected' if project.project_units == 'metric' else '' }}>Metric</option>
+                        <option value="imperial" {{ 'selected' if project.project_units == 'imperial' else '' }}>Imperial</option>
+                    </select>
+                </div>
+
+                <div class="settings-form-group">
+                    <label class="settings-form-label" for="projectVisibility">Visibility</label>
+                    <select class="settings-form-select" id="projectVisibility" name="visibility">
+                        <option value="private" {{ 'selected' if project.project_visibility == 'private' else '' }}>Private</option>
+                        <option value="team" {{ 'selected' if project.project_visibility == 'team' else '' }}>Team</option>
+                        <option value="public" {{ 'selected' if project.project_visibility == 'public' else '' }}>Public</option>
+                    </select>
+                </div>
+
+                <div class="settings-form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeProjectSettings()">Cancel</button>
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Load snapshot data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjectSnapshot();
+        });
+
+        async function loadProjectSnapshot() {
+            try {
+                const response = await fetch(`/api/project/{{ project.id }}/snapshot`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.snapshot) {
+                        renderSnapshot(data.snapshot);
+                    } else {
+                        showNoSnapshotMessage();
+                    }
+                } else {
+                    showNoSnapshotMessage();
+                }
+            } catch (error) {
+                console.error('Error loading project snapshot:', error);
+                showNoSnapshotMessage();
+            }
+        }
+
+        function showNoSnapshotMessage() {
+            const previewElement = document.getElementById('snapshotPreview');
+            if (previewElement) {
+                previewElement.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center;">
+                        <div>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+                            <p>No project snapshot available</p>
+                            <p style="font-size: 0.875rem; opacity: 0.7;">Complete the site inspector to see a preview</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderSnapshot(snapshot) {
+            const previewElement = document.getElementById('snapshotPreview');
+            if (!previewElement) return;
+
+            try {
+                let snapshotData;
+
+                // Parse snapshot data - handle both JSON strings and nested JSON
+                try {
+                    if (typeof snapshot.snapshot_data === 'string') {
+                        // Try direct JSON parse first
+                        snapshotData = JSON.parse(snapshot.snapshot_data);
+                    } else {
+                        snapshotData = snapshot.snapshot_data;
+                    }
+                } catch (jsonError) {
+                    console.warn('Failed to parse snapshot data as JSON:', jsonError);
+                    // If direct parsing fails, try to handle Python dict format
+                    try {
+                        let jsonString = snapshot.snapshot_data;
+
+                        // Basic Python dict to JSON conversion
+                        jsonString = jsonString
+                            .replace(/'/g, '"')
+                            .replace(/True/g, 'true')
+                            .replace(/False/g, 'false')
+                            .replace(/None/g, 'null');
+
+                        snapshotData = JSON.parse(jsonString);
+                    } catch (conversionError) {
+                        console.error('Failed to convert Python dict to JSON:', conversionError);
+                        showNoSnapshotMessage();
+                        return;
+                    }
+                }
+
+                console.log('Parsed snapshot data:', snapshotData);
+                console.log('Snapshot type:', snapshot.snapshot_type);
+
+                // Render based on snapshot type
+                switch (snapshot.snapshot_type) {
+                    case 'site_boundary':
+                        renderSiteBoundarySnapshot(snapshotData, previewElement);
+                        break;
+                    case 'buildable_area':
+                        renderBuildableAreaSnapshot(snapshotData, previewElement);
+                        break;
+                    case 'structure_design':
+                        renderStructureDesignSnapshot(snapshotData, previewElement);
+                        break;
+                    case 'structural_analysis':
+                        renderStructuralAnalysisSnapshot(snapshotData, previewElement);
+                        break;
+                    case 'terrain_analysis':
+                        renderTerrainAnalysisSnapshot(snapshotData, previewElement);
+                        break;
+                    default:
+                        console.warn('Unknown snapshot type:', snapshot.snapshot_type);
+                        showGenericSnapshot(snapshot, previewElement);
+                        break;
+                }
+
+            } catch (error) {
+                console.error('Error rendering snapshot:', error);
+                showNoSnapshotMessage();
+            }
+        }
+
+        async function renderSiteBoundarySnapshot(data, container) {
+            // Check if we have coordinates data
+            let coordinates = null;
+            if (data.coordinates) {
+                coordinates = data.coordinates;
+            } else if (typeof data === 'string') {
+                try {
+                    const parsed = JSON.parse(data);
+                    coordinates = parsed.coordinates;
+                } catch (e) {
+                    console.warn('Could not parse coordinates from data');
+                }
+            }
+
+            if (coordinates && Array.isArray(coordinates) && coordinates.length > 0) {
+                // Create map container
+                const mapId = `snapshot-map-${Date.now()}`;
+                container.innerHTML = `<div id="${mapId}" style="width: 100%; height: 100%;"></div>`;
+
+                try {
+                    // Get Mapbox token
+                    const tokenResponse = await fetch('/api/mapbox-token');
+                    const tokenData = await tokenResponse.json();
+
+                    if (tokenData.success && tokenData.token) {
+                        // Set up Mapbox
+                        mapboxgl.accessToken = tokenData.token;
+
+                        // Convert coordinates to proper format and calculate bounds
+                        const points = coordinates.map(coord => [coord[0], coord[1]]); // [lng, lat]
+
+                        // Calculate bounds
+                        const lngs = points.map(p => p[0]);
+                        const lats = points.map(p => p[1]);
+                        const bounds = [
+                            [Math.min(...lngs), Math.min(...lats)], // Southwest coordinates
+                            [Math.max(...lngs), Math.max(...lats)]  // Northeast coordinates
+                        ];
+
+                        // Create map
+                        const map = new mapboxgl.Map({
+                            container: mapId,
+                            style: 'mapbox://styles/mapbox/outdoors-v12',
+                            bounds: bounds,
+                            fitBoundsOptions: {
+                                padding: 40
+                            },
+                            attributionControl: false,
+                            interactive: false // Make it static for preview
+                        });
+
+                        map.on('load', () => {
+                            // Add site boundary
+                            map.addSource('site-boundary', {
+                                type: 'geojson',
+                                data: {
+                                    type: 'Feature',
+                                    geometry: {
+                                        type: 'Polygon',
+                                        coordinates: [points.concat([points[0]])] // Close the polygon
+                                    }
+                                }
+                            });
+
+                            // Add fill layer
+                            map.addLayer({
+                                id: 'site-boundary-fill',
+                                type: 'fill',
+                                source: 'site-boundary',
+                                paint: {
+                                    'fill-color': '#547bf7',
+                                    'fill-opacity': 0.3
+                                }
+                            });
+
+                            // Add outline layer
+                            map.addLayer({
+                                id: 'site-boundary-outline',
+                                type: 'line',
+                                source: 'site-boundary',
+                                paint: {
+                                    'line-color': '#547bf7',
+                                    'line-width': 3
+                                }
+                            });
+                        });
+
+                    } else {
+                        // Fallback to canvas if no Mapbox token
+                        fallbackToCanvas(container, coordinates);
+                    }
+                } catch (error) {
+                    console.error('Error creating map:', error);
+                    // Fallback to canvas if map fails
+                    fallbackToCanvas(container, coordinates);
+                }
+            } else {
+                showPlaceholderCanvas(container, '🗺️', 'Site Boundary', 'Boundary data not available');
+            }
+        }
+
+        async function renderBuildableAreaSnapshot(data, container) {
+            // Look for buildable coordinates
+            let buildableCoords = data.buildable_coords || data.coordinates;
+
+            if (buildableCoords && Array.isArray(buildableCoords) && buildableCoords.length > 0) {
+                // Create map container
+                const mapId = `buildable-map-${Date.now()}`;
+                container.innerHTML = `<div id="${mapId}" style="width: 100%; height: 100%;"></div>`;
+
+                try {
+                    // Get Mapbox token
+                    const tokenResponse = await fetch('/api/mapbox-token');
+                    const tokenData = await tokenResponse.json();
+
+                    if (tokenData.success && tokenData.token) {
+                        // Set up Mapbox
+                        mapboxgl.accessToken = tokenData.token;
+
+                        // Convert coordinates to proper format and calculate bounds
+                        const points = buildableCoords.map(coord => [coord[0], coord[1]]); // [lng, lat]
+
+                        // Calculate bounds
+                        const lngs = points.map(p => p[0]);
+                        const lats = points.map(p => p[1]);
+                        const bounds = [
+                            [Math.min(...lngs), Math.min(...lats)], // Southwest coordinates
+                            [Math.max(...lngs), Math.max(...lats)]  // Northeast coordinates
+                        ];
+
+                        // Create map
+                        const map = new mapboxgl.Map({
+                            container: mapId,
+                            style: 'mapbox://styles/mapbox/outdoors-v12',
+                            bounds: bounds,
+                            fitBoundsOptions: {
+                                padding: 40
+                            },
+                            attributionControl: false,
+                            interactive: false // Make it static for preview
+                        });
+
+                        map.on('load', () => {
+                            // Add buildable area
+                            map.addSource('buildable-area', {
+                                type: 'geojson',
+                                data: {
+                                    type: 'Feature',
+                                    geometry: {
+                                        type: 'Polygon',
+                                        coordinates: [points.concat([points[0]])] // Close the polygon
+                                    }
+                                }
+                            });
+
+                            // Add fill layer
+                            map.addLayer({
+                                id: 'buildable-area-fill',
+                                type: 'fill',
+                                source: 'buildable-area',
+                                paint: {
+                                    'fill-color': '#002040',
+                                    'fill-opacity': 0.4
+                                }
+                            });
+
+                            // Add outline layer
+                            map.addLayer({
+                                id: 'buildable-area-outline',
+                                type: 'line',
+                                source: 'buildable-area',
+                                paint: {
+                                    'line-color': '#002040',
+                                    'line-width': 3
+                                }
+                            });
+                        });
+
+                    } else {
+                        // Fallback to canvas if no Mapbox token
+                        fallbackToBuildableCanvas(container, buildableCoords);
+                    }
+                } catch (error) {
+                    console.error('Error creating buildable area map:', error);
+                    // Fallback to canvas if map fails
+                    fallbackToBuildableCanvas(container, buildableCoords);
+                }
+            } else {
+                showPlaceholderCanvas(container, '📐', 'Buildable Area', 'Buildable area data not available');
+            }
+        }
+
+        function renderStructureDesignSnapshot(data, container) {
+            showPlaceholderCanvas(container, '🏗️', 'Structure Design', `${data.structure_type || 'Structure'} designed`);
+        }
+
+        function renderStructuralAnalysisSnapshot(data, container) {
+            showPlaceholderCanvas(container, '🔧', 'Structural Analysis', `Analysis ${data.status || 'completed'}`);
+        }
+
+        function renderTerrainAnalysisSnapshot(data, container) {
+            showPlaceholderCanvas(container, '🏔️', 'Terrain Analysis', 'Terrain analysis completed');
+        }
+
+        function showGenericSnapshot(snapshot, container) {
+            showPlaceholderCanvas(container, '📋', snapshot.snapshot_type, snapshot.description || 'Snapshot available');
+        }
+
+        function showPlaceholderCanvas(container, icon, title, description) {
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center;">
+                    <div>
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">${icon}</div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: #333;">${title}</h3>
+                        <p style="margin: 0; font-size: 0.875rem; opacity: 0.7;">${description}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function drawSiteBoundary(ctx, coordinates, width, height) {
+            if (!coordinates || coordinates.length < 3) return;
+
+            // Calculate bounds
+            const bounds = calculateBounds(coordinates);
+            const scale = Math.min(width / bounds.width, height / bounds.height) * 0.8;
+            const offsetX = (width - bounds.width * scale) / 2 - bounds.minX * scale;
+            const offsetY = (height - bounds.height * scale) / 2 - bounds.minY * scale;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw boundary
+            ctx.beginPath();
+            ctx.strokeStyle = '#007cbf';
+            ctx.fillStyle = 'rgba(0, 124, 191, 0.2)';
+            ctx.lineWidth = 2;
+
+            coordinates.forEach((coord, index) => {
+                const x = coord[0] * scale + offsetX;
+                const y = height - (coord[1] * scale + offsetY); // Flip Y axis
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw vertices
+            ctx.fillStyle = '#007cbf';
+            coordinates.forEach(coord => {
+                const x = coord[0] * scale + offsetX;
+                const y = height - (coord[1] * scale + offsetY);
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+        }
+
+        function drawBuildableArea(ctx, coordinates, width, height) {
+            if (!coordinates || coordinates.length < 3) return;
+
+            // Calculate bounds
+            const bounds = calculateBounds(coordinates);
+            const scale = Math.min(width / bounds.width, height / bounds.height) * 0.8;
+            const offsetX = (width - bounds.width * scale) / 2 - bounds.minX * scale;
+            const offsetY = (height - bounds.height * scale) / 2 - bounds.minY * scale;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw buildable area
+            ctx.beginPath();
+            ctx.strokeStyle = '#002040';
+            ctx.fillStyle = 'rgba(0, 32, 64, 0.4)';
+            ctx.lineWidth = 2;
+
+            coordinates.forEach((coord, index) => {
+                const x = coord[0] * scale + offsetX;
+                const y = height - (coord[1] * scale + offsetY); // Flip Y axis
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function calculateBounds(coordinates) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+            coordinates.forEach(coord => {
+                minX = Math.min(minX, coord[0]);
+                minY = Math.min(minY, coord[1]);
+                maxX = Math.max(maxX, coord[0]);
+                maxY = Math.max(maxY, coord[1]);
+            });
+
+            return {
+                minX, minY, maxX, maxY,
+                width: maxX - minX,
+                height: maxY - minY
+            };
+        }
+
+        function calculatePolygonArea(coordinates) {
+            if (coordinates.length < 3) return 0;
+
+            let area = 0;
+            for (let i = 0; i < coordinates.length; i++) {
+                const j = (i + 1) % coordinates.length;
+                area += coordinates[i][0] * coordinates[j][1];
+                area -= coordinates[j][0] * coordinates[i][1];
+            }
+            return Math.abs(area) / 2;
+        }
+
+
+
+        async function initializeSnapshotMap(mapId, coordinates) {
+            try {
+                // Get Mapbox token
+                const tokenResponse = await fetch('/api/mapbox-token');
+                const tokenData = await tokenResponse.json();
+
+                if (!tokenData.success || !tokenData.token) {
+                    console.warn('No Mapbox token available for snapshot map');
+                    // Fallback to canvas drawing
+                    fallbackToCanvas(mapId, coordinates);
+                    return;
+                }
+
+                // Set up Mapbox
+                mapboxgl.accessToken = tokenData.token;
+
+                // Convert coordinates to proper format and calculate bounds
+                const points = coordinates.map(coord => {
+                    if (Array.isArray(coord)) {
+                        return [coord[0], coord[1]]; // [lng, lat]
+                    } else if (coord.lng !== undefined) {
+                        return [coord.lng, coord.lat];
+                    }
+                    return [coord.x || coord[0], coord.y || coord[1]];
+                });
+
+                // Calculate bounds
+                const lngs = points.map(p => p[0]);
+                const lats = points.map(p => p[1]);
+                const bounds = [
+                    [Math.min(...lngs), Math.min(...lats)], // Southwest coordinates
+                    [Math.max(...lngs), Math.max(...lats)]  // Northeast coordinates
+                ];
+
+                // Create map
+                const map = new mapboxgl.Map({
+                    container: mapId,
+                    style: 'mapbox://styles/mapbox/outdoors-v12',
+                    bounds: bounds,
+                    fitBoundsOptions: {
+                        padding: 20
+                    },
+                    attributionControl: false,
+                    interactive: false // Make it static for preview
+                });
+
+                map.on('load', () => {
+                    // Add site boundary
+                    map.addSource('site-boundary', {
+                        type: 'geojson',
+                        data: {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Polygon',
+                                coordinates: [points.concat([points[0]])] // Close the polygon
+                            }
+                        }
+                    });
+
+                    // Add fill layer
+                    map.addLayer({
+                        id: 'site-boundary-fill',
+                        type: 'fill',
+                        source: 'site-boundary',
+                        paint: {
+                            'fill-color': '#547bf7',
+                            'fill-opacity': 0.3
+                        }
+                    });
+
+                    // Add outline layer
+                    map.addLayer({
+                        id: 'site-boundary-outline',
+                        type: 'line',
+                        source: 'site-boundary',
+                        paint: {
+                            'line-color': '#547bf7',
+                            'line-width': 2
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error initializing snapshot map:', error);
+                // Fallback to canvas drawing
+                fallbackToCanvas(mapId, coordinates);
+            }
+        }
+
+        function fallbackToCanvas(container, coordinates) {
+            // Create canvas for site boundary visualization
+            const canvas = document.createElement('canvas');
+            canvas.width = container.clientWidth || 400;
+            canvas.height = container.clientHeight || 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+
+            container.innerHTML = '';
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            drawSiteBoundary(ctx, coordinates, canvas.width, canvas.height);
+        }
+
+        function fallbackToBuildableCanvas(container, coordinates) {
+            // Create canvas for buildable area visualization
+            const canvas = document.createElement('canvas');
+            canvas.width = container.clientWidth || 400;
+            canvas.height = container.clientHeight || 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+
+            container.innerHTML = '';
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            drawBuildableArea(ctx, coordinates, canvas.width, canvas.height);
+        }
+
+        function renderBuildableAreaSnapshot(element, data) {
+            element.innerHTML = `
+                <div class="snapshot-buildable-preview">
+                    <div class="snapshot-icon">📐</div>
+                    <p><strong>Buildable Area</strong></p>
+                    <div class="snapshot-stats">
+                        ${data.buildable_area_m2 ? `<span>${Math.round(data.buildable_area_m2)} m²</span>` : ''}
+                        ${data.coverage_ratio ? `<br><span>${Math.round(data.coverage_ratio * 100)}% coverage</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStructureDesignSnapshot(element, data) {
+            element.innerHTML = `
+                <div class="snapshot-structure-preview">
+                    <div class="snapshot-icon">🏗️</div>
+                    <p><strong>Structure Design</strong></p>
+                    <div class="snapshot-stats">
+                        ${data.structure_type ? `<span>${data.structure_type}</span>` : ''}
+                        ${data.spans ? `<br><span>${data.spans} spans</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStructuralAnalysisSnapshot(element, data) {
+            element.innerHTML = `
+                <div class="snapshot-analysis-preview">
+                    <div class="snapshot-icon">🔧</div>
+                    <p><strong>Analysis Results</strong></p>
+                    <div class="snapshot-stats">
+                        ${data.max_deflection ? `<span>Max deflection: ${data.max_deflection}mm</span>` : ''}
+                        ${data.status ? `<br><span class="status-${data.status.toLowerCase()}">${data.status}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleAddNoteForm() {
+            const form = document.getElementById('addNoteForm');
+            form.classList.toggle('active');
+            if (form.classList.contains('active')) {
+                document.getElementById('noteText').focus();
+            }
+        }
+
+        async function addNote(event) {
+            event.preventDefault();
+            const noteText = document.getElementById('noteText').value.trim();
+
+            if (!noteText) return;
+
+            try {
+                const response = await fetch(`/api/project/{{ project.id }}/notes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ note: noteText })
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to add note. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error adding note:', error);
+                alert('Failed to add note. Please try again.');
+            }
+        }
+
+        // Project Settings Modal Functions
+        function openProjectSettings() {
+            console.log('[ProjectOverview] Opening project settings...');
+            // Project settings functionality to be implemented
+        }
+
+
+
+        function closeProjectSettings() {
+            document.getElementById('projectSettingsModal').classList.remove('active');
+        }
+
+        async function saveProjectSettings(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('projectSettingsForm');
+            const formData = new FormData(form);
+
+            const settings = {
+                units: formData.get('units'),
+                visibility: formData.get('visibility')
+            };
+
+            try {
+                const response = await fetch(`/api/project/{{ project.id }}/settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    closeProjectSettings();
+                    // Show success message or reload page
+                    location.reload();
+                } else {
+                    alert('Failed to save settings. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error saving project settings:', error);
+                alert('Failed to save settings. Please try again.');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('projectSettingsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProjectSettings();
+            }
+        });
+
+        function openAddNoteModal() {
+            document.getElementById('addNoteModal').style.display = 'block';
+        }
+
+        function closeAddNoteModal() {
+            document.getElementById('addNoteModal').style.display = 'none';
+            document.getElementById('newNoteText').value = '';
+        }
+
+        // Adjust team profile card height based on member count
+        function adjustTeamProfileCardHeight() {
+            const teamProfileCard = document.querySelector('.content-card.team-profile');
+            const teamMembers = teamProfileCard.querySelectorAll('.team-member');
+
+            if (teamProfileCard && teamMembers.length > 0) {
+                // Calculate height: header + content padding + members + bottom padding
+                const headerHeight = 73; // Card header height
+                const contentPaddingTop = 32; // Top padding of card-content
+                const memberHeight = 76; // Height of each team member (64px + 12px margin)
+                const bottomPadding = 32; // Required bottom padding
+
+                const totalHeight = headerHeight + contentPaddingTop + (teamMembers.length * memberHeight) + bottomPadding;
+                teamProfileCard.style.height = `${totalHeight}px`;
+            }
+        }
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', adjustTeamProfileCardHeight);
+
+        // Function to navigate to engineering flow step
+        function navigateToStep(stepNumber, projectId) {
+            if (!projectId) {
+                projectId = {{ project.id }};
+            }
+
+            // Ensure projectId is clean (no extra parameters)
+            if (typeof projectId === 'string' && projectId.includes('?')) {
+                projectId = projectId.split('?')[0];
+                console.log('Cleaned malformed project ID:', projectId);
+            }
+
+            // Validate project ID is numeric
+            projectId = String(projectId).trim();
+            if (!/^\d+$/.test(projectId)) {
+                console.error('Invalid project ID format:', projectId);
+                return;
+            }
+
+            console.log('Navigating to step', stepNumber, 'with project ID:', projectId);
+
+            const routes = {
+                1: `/site-inspector?project_id=${projectId}`,
+                2: `/terrain-viewer?project_id=${projectId}`,
+                3: `/structure-designer?project_id=${projectId}`,
+                4: `/structural-analyser?project_id=${projectId}`
+            };
+
+            if (routes[stepNumber]) {
+                window.location.href = routes[stepNumber];
+            } else {
+                console.error('Invalid step number:', stepNumber);
+            }
+        }
+    </script>
+    <style>
+        .flow-progress {
+            width: 100%;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            width: 25%; /* Equal width for each step */
+        }
+
+        .progress-step:first-child {
+            text-align: left;
+        }
+
+        .progress-step:last-child {
+            text-align: right;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .progress-step.current .step-circle {
+            background: #547bf7;
+            color: white;
+        }
+
+        .progress-step.completed .step-circle {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            color: #4a5568;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .progress-connector {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+
+        .progress-step:first-child .progress-connector {
+            left: 50%;
+        }
+
+        .progress-step:last-child .progress-connector {
+            right: 50%;
+        }
+
+        .progress-step.completed ~ .progress-connector {
+            background: #10b981;
+        }
+
+        .progress-step.completed .progress-connector {
+            background: #10b981;
+        }
+
+        .progress-summary {
+            font-size: 0.875rem;
+            color: #2d3748;
+        }
+
+        .progress-summary p {
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-summary p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Clickable flow step styles */
+        .progress-step.clickable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .progress-step.clickable:hover {
+            transform: translateY(-2px);
+        }
+
+        .progress-step.clickable:hover .step-circle {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-step.clickable.current:hover .step-circle {
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.4);
+        }
+
+        .progress-step.clickable.completed:hover .step-circle {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+    </style>
+    <script src="/static/js/core.js"></script>
+    <script src="/static/js/timezone-detector.js"></script>
+    <script src="/static/js/snapshot-manager.js"></script>
+    <script src="/static/js/adam-chat-widget.js"></script>
+    <script src="/static/app.js"></script>
+    <script>
+        // Initialize snapshot manager for this project
+        if (typeof initializeSnapshotManager === 'function') {
+            initializeSnapshotManager({{ project.id }});
+        }
+        // Check if the site data is available
+        {% if site_data %}
+            console.log('[ProjectBuilder] Site data loaded successfully!');
+        {% else %}
+            console.log('[ProjectBuilder] No site data available');
+        {% endif %}
+    </script>
+
+    <!-- ADAM Chat Widget -->tatic', filename='js/adam-chat-widget.js') }}"></script>
+</body>
+</html>

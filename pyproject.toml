@@ -1,0 +1,25 @@
+[project]
+name = "python-template"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+requires-python = ">=3.11"
+dependencies = [
+    "agents>=1.4.0",
+    "authlib>=1.6.0",
+    "bcrypt>=4.3.0",
+    "flask>=3.1.1",
+    "openai>=1.84.0",
+    "openai-agents==0.0.13",
+    "opencv-python>=4.11.0.86",
+    "pillow>=11.2.1",
+    "plotly>=6.2.0",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.11.5",
+    "pyproj>=3.7.1",
+    "pytz>=2025.2",
+    "rasterio>=1.4.3",
+    "requests>=2.32.3",
+    "scipy>=1.16.0",
+    "shapely>=2.1.1",
+]

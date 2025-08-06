@@ -1,0 +1,40 @@
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/routes/main_routes.py", line 67, in handle_dashboard
+    return render_template('dashboard.html', user=user_info)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/runner/workspace/templates/dashboard.html", line 61, in top-level template code
+    {% elif user and hasattr(user, 'profile_picture') and user.profile_picture %}
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/utils.py", line 92, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'hasattr' is undefined
+172.31.96.194 - - [24/Jul/2025 11:25:48] "GET /dashboard?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 304 -
+172.31.96.194 - - [24/Jul/2025 11:25:48] "GET /dashboard?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 304 -

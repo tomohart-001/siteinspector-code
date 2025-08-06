@@ -1,0 +1,51 @@
+============================================================
+🔒 SECURITY SCAN REPORT
+============================================================
+Scan completed: 2025-07-20T12:36:18.816570
+
+🚨 HIGH SEVERITY ISSUES: 50
+⚠️  MEDIUM SEVERITY ISSUES: 2
+
+
+📊 SECRETS
+----------------------------------------
+  🔑 password in ./.cache/uv/archive-v0/hWBb7eLhDPPr_3L1TTfMq/starlette/datastructures.py:174
+  🔑 password in ./.cache/uv/archive-v0/Nqq1OgoLSq1I2MFejvTSr/httpx/_urls.py:336
+  🔑 secret in ./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth1/rfc5849/authorization_server.py:215
+  🔑 secret in ./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth1/rfc5849/signature.py:39
+  🔑 secret in ./.cache/uv/archive-v0/CGQ3oweH_3JykPhyiNSEa/authlib/oauth2/rfc6749/grants/authorization_code.py:261
+
+📊 SQL INJECTION
+----------------------------------------
+  ⚠️  SQL Injection in ./.cache/uv/archive-v0/E9gbxh1Y8KM2rNSvQTulr/werkzeug/urls.py:56
+  ⚠️  SQL Injection in ./.cache/uv/archive-v0/E9gbxh1Y8KM2rNSvQTulr/werkzeug/urls.py:142
+  ⚠️  SQL Injection in ./.cache/uv/archive-v0/m54qgqwgZWIXiq4kQj6BX/pygments/lexers/ldap.py:114
+  ⚠️  SQL Injection in ./.cache/uv/archive-v0/_esDHacSZr-UeCnUbVwHY/psycopg2/_json.py:187
+  ⚠️  SQL Injection in ./.pythonlibs/lib/python3.11/site-packages/psycopg2/_json.py:187
+
+📊 XSS VULNERABILITIES
+----------------------------------------
+  ✅ No issues found
+
+📊 COMMAND INJECTION
+----------------------------------------
+  ✅ No issues found
+
+📊 DEPENDENCIES
+----------------------------------------
+  ✅ No issues found
+
+📊 FILE PERMISSIONS
+----------------------------------------
+  ✅ No issues found
+
+📊 ENVIRONMENT
+----------------------------------------
+  ⚠️  Consider adding security headers configuration
+  ⚠️  Consider enabling secure session cookies
+
+============================================================
+🔧 RECOMMENDATIONS
+============================================================
+❌ DEPLOYMENT NOT RECOMMENDED
+   Fix all HIGH severity issues before deploying

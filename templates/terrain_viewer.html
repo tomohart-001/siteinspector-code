@@ -1,0 +1,3716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=width-device, initial-scale=1.0">
+    <title>Cut & Fill Analysis - EngineRoom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adam-chat-widget.css') }}">
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header Styles - Light Mode Consistent */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 16px 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 2000;
+            height: 60px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-back-btn {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1a202c;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-back-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #1a202c;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-title {
+            color: #1a202c;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            color: #4a5568;
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin: 2px 0 0 0;
+        }
+
+        /* Engineering Flow Progress */
+        .engineering-flow-progress {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 12px 24px;
+            z-index: 1999;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .project-info-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-right: 120px;
+            flex-shrink: 0;
+        }
+
+        .project-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 2px;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        .project-address {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 400;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .flow-steps-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .step-indicator {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .flow-step.active .step-indicator {
+            background: #547bf7;
+            color: white;
+            box-shadow: 0 0 0 4px rgba(84, 123, 247, 0.2);
+        }
+
+        .flow-step.completed .step-indicator {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-number {
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+        }
+
+        .step-check {
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .flow-step.completed .step-number {
+            display: none;
+        }
+
+        .flow-step.completed .step-check {
+            display: block;
+        }
+
+        .step-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a202c;
+            white-space: nowrap;
+        }
+
+        .step-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+
+        .flow-step.active .step-title {
+            color: #547bf7;
+        }
+
+        .flow-step.completed .step-title {
+            color: #10b981;
+        }
+
+        .flow-connector {
+            width: 60px;
+            height: 2px;
+            background: #e2e8f0;
+            margin: 0 16px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step.completed + .flow-connector {
+            background: #10b981;
+        }
+
+        .flow-step.active + .flow-connector {
+            background: linear-gradient(90deg, #10b981 0%, #e2e8f0 50%, #e2e8f0 100%);
+        }
+
+        /* Clickable flow steps */
+        .flow-step.clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step.clickable:hover {
+            transform: translateY(-2px);
+        }
+
+        .flow-step.clickable:hover .step-indicator {
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        .flow-step.clickable:hover .step-title {
+            color: #547bf7;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-cta-btn {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .header-cta-btn:hover {
+            background: linear-gradient(135deg, #6287ff 0%, #5575e8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(84, 123, 247, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            position: absolute;
+            top: 116px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+        }
+
+        /* Terrain Canvas Container */
+        .terrain-canvas-container {
+            flex: 1;
+            position: relative;
+            background: #181c22;
+        }
+
+        /* Terrain Canvas */
+        .terrain-canvas {
+            width: 100%;
+            height: 100%;
+            background: #181c22;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Map Overlay */
+        .map-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            border-radius: 0;
+            pointer-events: none; /* Allow terrain interaction underneath */
+            opacity: 0.7;
+            mix-blend-mode: multiply; /* Blend with terrain below */
+        }
+
+        .map-overlay.visible {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        .map-overlay .mapboxgl-canvas {
+            border-radius: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .map-overlay .mapboxgl-map {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Hide Mapbox attribution in overlay */
+        .map-overlay .mapboxgl-ctrl-logo,
+        .map-overlay .mapboxgl-ctrl-attrib,
+        .map-overlay .mapboxgl-ctrl-group,
+        .map-overlay .mapboxgl-ctrl {
+            display: none !important;
+        }
+
+        /* Control Panel */
+        .terrain-panel {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-title {
+            color: #1a202c;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+
+        .panel-subtitle {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .control-section {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+        }
+
+        .section-title {
+            color: #1a202c;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+
+        /* View Controls */
+        .view-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 56px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, #6287ff 0%, #5575e8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        .control-btn:disabled {
+            background: rgba(116, 139, 191, 0.4);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            color: #4a5568;
+            padding: 20px;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        .site-info {
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .site-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .site-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .site-info-label {
+            color: #4a5568;
+            font-size: 0.85rem;
+        }
+
+        .site-info-value {
+            color: #1a202c;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .success-message {
+            background: rgba(85, 182, 133, 0.1);
+            border: 1px solid rgba(85, 182, 133, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: #55B685;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        /* Progress Tracking Styles */
+        .progress-container {
+            background: rgba(248, 250, 252, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .progress-header {
+            margin-bottom: 16px;
+        }
+
+        .progress-title {
+            color: #1a202c;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .progress-status {
+            color: #4a5568;
+            font-size: 0.85rem;
+        }
+
+        .progress-bar-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            height: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #547bf7 0%, #51cf66 100%);
+            height: 100%;
+            width: 0%;
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-percent {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            color: #1a202c;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .progress-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            color: #64748b;
+            font-size: 0.8rem;
+            transition: color 0.3s ease;
+            padding: 4px 0;
+        }
+
+        .progress-step.active {
+            color: #547bf7;
+            font-weight: 500;
+        }
+
+        .progress-step.completed {
+            color: #51cf66;
+        }
+
+        .progress-step.error {
+            color: #ff6b6b;
+        }
+
+        /* Earthworks Controls */
+        .platform-controls, .ffl-controls {
+            margin-bottom: 16px;
+        }
+
+        .control-label {
+            display: block;
+            color: #1a202c;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-row input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #1a202c;
+            font-size: 0.85rem;
+        }
+
+        .input-row input:focus {
+            outline: none;
+            border-color: #547bf7;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 2px rgba(84, 123, 247, 0.2);
+        }
+
+        .ffl-options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #1a202c;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            margin: 0;
+        }
+
+        #manualFFL {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #1a202c;
+            font-size: 0.85rem;
+        }
+
+        #manualFFL:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #manualFFL:focus {
+            outline: none;
+            border-color: #547bf7;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 2px rgba(84, 123, 247, 0.2);
+        }
+
+        /* Platform Rotation Controls */
+        #platformRotation {
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            height: 8px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        #platformRotation::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #547bf7;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+        }
+
+        #platformRotation::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #547bf7;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+        }
+
+        #platformRotationValue {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #1a202c;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        #platformRotationValue:focus {
+            outline: none;
+            border-color: #547bf7;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 2px rgba(84, 123, 247, 0.2);
+        }
+
+        /* Results Display */
+        .results-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+        }
+
+        .result-label {
+            color: #4a5568;
+            font-size: 0.85rem;
+        }
+
+        .result-value {
+            color: #1a202c;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .result-value.positive {
+            color: #cd853f;
+        }
+
+        .result-value.negative {
+            color: #4a6fa5;
+        }
+
+        /* Map Overlay Settings */
+        .map-overlay-settings {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .overlay-style-select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #1a202c;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .overlay-style-select:focus {
+            outline: none;
+            border-color: #547bf7;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 2px rgba(84, 123, 247, 0.2);
+        }
+
+        .overlay-style-select option {
+            background: #ffffff;
+            color: #1a202c;
+        }
+
+        .opacity-value {
+            color: #4a5568;
+            font-size: 0.85rem;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        #overlayOpacity {
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            height: 8px;
+            outline: none;
+            cursor: pointer;
+            flex: 1;
+            margin-right: 8px;
+        }
+
+        #overlayOpacity::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #547bf7;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+        }
+
+        #overlayOpacity::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #547bf7;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+        }
+
+        /* Toggle Switch Styles */
+        .toggle-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(116, 139, 191, 0.3);
+            transition: 0.3s;
+            border-radius: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #ffffff;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #547bf7;
+            border-color: #547bf7;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .engineering-flow-progress {
+                padding: 12px 16px;
+                height: 70px;
+            }
+
+            .flow-container {
+                overflow-x: auto;
+                padding: 8px 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .project-info-section {
+                margin-right: 0;
+                margin-bottom: 8px;
+            }
+
+            .project-name {
+                font-size: 14px;
+            }
+
+            .project-address {
+                font-size: 12px;
+            }
+
+            .flow-steps-container {
+                overflow-x: auto;
+                width: 100%;
+            }
+
+            .step-content {
+                display: none;
+            }
+
+            .flow-connector {
+                width: 40px;
+                margin: 0 8px;
+            }
+
+            .main-content {
+                flex-direction: column;
+                top: 130px;
+            }
+
+            .terrain-panel {
+                width: 100%;
+                height: 200px;
+                border-left: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .message {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .location-error {
+            text-align: left;
+        }
+
+        .location-error h4 {
+            margin: 0 0 10px 0;
+            color: #721c24;
+        }
+
+        .location-error .error-details {
+            background: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .location-error .error-details p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Site Header -->
+    <div class="site-header">
+        <div class="header-left">
+            <a href="{% if project_data and project_data.get('id') %}/project/{{ project_data.get('id') }}{% else %}/dashboard{% endif %}" class="header-back-btn">
+                ← Project Overview
+            </a>
+            <div class="header-title-section">
+                <h1 class="header-title">Cut & Fill Analysis</h1>
+                <p class="header-subtitle">LiDAR elevation data and earthworks visualisation</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="/structure-designer{% if project_data and project_data.get('id') %}?project={{ project_data.get('id') }}{% endif %}" class="header-cta-btn">Structure Designer</a>
+        </div>
+    </div>
+
+    <!-- Engineering Flow Progress -->
+    <div class="engineering-flow-progress">
+        <div class="flow-container">
+            <!-- Project Information -->
+            <div class="project-info-section">
+                {% if project_data and project_data.get('name') %}
+                <div class="project-name">{{ project_data.get('name', 'Current Project') }}</div>
+                {% set address = project_data.get('address', '') %}
+                {% if address %}
+                    {% if address|length > 45 %}
+                    <div class="project-address" title="{{ address }}">{{ address[:42] }}...</div>
+                    {% else %}
+                    <div class="project-address">{{ address }}</div>
+                    {% endif %}
+                {% else %}
+                <div class="project-address">No address available</div>
+                {% endif %}
+                {% elif site_data and site_data.get('address') %}
+                <div class="project-name">{{ site_data.get('project_name', 'Current Project') }}</div>
+                {% set address = site_data.get('address', '') %}
+                {% if address %}
+                    {% if address|length > 45 %}
+                    <div class="project-address" title="{{ address }}">{{ address[:42] }}...</div>
+                    {% else %}
+                    <div class="project-address">{{ address }}</div>
+                    {% endif %}
+                {% else %}
+                <div class="project-address">No address available</div>
+                {% endif %}
+                {% else %}
+                <div class="project-name">Current Project</div>
+                <div class="project-address">No address available</div>
+                {% endif %}
+            </div>
+
+            <div class="flow-steps-container">
+                <div class="flow-step completed clickable" onclick="navigateToStep(1)">
+                    <div class="step-indicator">
+                        <div class="step-number">1</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Site Inspector</div>
+                        <div class="step-subtitle">Define site boundaries</div>
+                    </div>
+                </div>
+
+                <div class="flow-connector completed"></div>
+
+                <div class="flow-step active clickable" onclick="navigateToStep(2)">
+                    <div class="step-indicator">
+                        <div class="step-number">2</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Cut & Fill Analysis</div>
+                        <div class="step-subtitle">Analyse site topography</div>
+                    </div>
+                </div>
+
+                <div class="flow-connector"></div>
+
+                <div class="flow-step clickable" onclick="navigateToStep(3)">
+                    <div class="step-indicator">
+                        <div class="step-number">3</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Structure Designer</div>
+                        <div class="step-subtitle">Design your building</div>
+                    </div>
+                </div>
+
+                <div class="flow-connector"></div>
+
+                <div class="flow-step clickable" onclick="navigateToStep(4)">
+                    <div class="step-indicator">
+                        <div class="step-number">4</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Structure Analyser</div>
+                        <div class="step-subtitle">Validate structural integrity</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Terrain Canvas with Map Overlay -->
+        <div class="terrain-canvas-container">
+            <div id="terrainCanvas" class="terrain-canvas"></div>
+            <div id="mapOverlay" class="map-overlay" style="display: none;"></div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="terrain-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Cut & Fill Controls</h2>
+                <p class="panel-subtitle">Generate and visualise 3D terrain data</p>
+            </div>
+
+
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="success-message" style="display: none;"></div>
+
+            <!-- Progress Tracking -->
+            <div id="progressContainer" class="progress-container" style="display: none;">
+                <div class="progress-header">
+                    <div class="progress-title">Generating 3D Terrain</div>
+                    <div id="progressStatus" class="progress-status">Initializing...</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                    <div id="progressPercent" class="progress-percent">0%</div>
+                </div>
+                <div id="progressSteps" class="progress-steps">
+                    <div class="progress-step" data-step="1">Geocoding coordinates</div>
+                    <div class="progress-step" data-step="2">Identifying city region</div>
+                    <div class="progress-step" data-step="3">Retrieving property boundary</div>
+                    <div class="progress-step" data-step="4">Finding DEM tiles</div>
+                    <div class="progress-step" data-step="5">Searching elevation data</div>
+                    <div class="progress-step" data-step="6">Processing terrain data</div>
+                    <div class="progress-step" data-step="7">Creating visualisation</div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner (fallback) -->
+            <div id="loadingSpinner" class="loading-spinner">
+                <div>Loading terrain data...</div>
+                <div style="font-size: 0.8rem; margin-top: 8px;">This may take a few moments</div>
+            </div>
+
+            <!-- View Controls moved up since generation is automatic -->
+            <div class="control-section">
+                <div class="section-title">View Controls</div>
+                <div class="view-controls">
+                    <button id="resetViewBtn" class="control-btn" disabled>
+                        Reset
+                    </button>
+                    <button id="topViewBtn" class="control-btn" disabled>
+                        Top
+                    </button>
+                    <button id="sideViewBtn" class="control-btn" disabled>
+                        Side
+                    </button>
+                    <button id="perspectiveViewBtn" class="control-btn" disabled>
+                        3D
+                    </button>
+                </div>
+            </div>
+
+            
+
+            <!-- Visualisation Settings -->
+            <div class="control-section">
+                <div class="section-title">Visualisation Settings</div>
+                
+                <div class="platform-controls">
+                    <label class="control-label">Terrain Opacity</label>
+                    <div class="input-row">
+                        <input type="range" id="terrainOpacity" min="0.1" max="1" value="1" step="0.1" style="flex: 2;">
+                        <span id="terrainOpacityValue" class="opacity-value">1.0</span>
+                    </div>
+                </div>
+
+                <div class="platform-controls" style="display: none;">
+                    <label class="control-label">Vertical Exaggeration</label>
+                    <div class="input-row">
+                        <input type="range" id="verticalScale" min="0.5" max="5" value="2.5" step="0.1" style="flex: 2;">
+                        <span id="verticalScaleValue" class="opacity-value">2.5x</span>
+                    </div>
+                </div>
+
+                <div class="platform-controls">
+                    <label class="control-label">Colour Scheme</label>
+                    <select id="colorSchemeSelect" class="overlay-style-select">
+                        <option value="terrain">Terrain (Blue-White)</option>
+                        <option value="viridis">Viridis</option>
+                    </select>
+                </div>
+
+                <div class="toggle-control" style="display: none;">
+                    <label class="control-label">Show Grid</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="gridToggle">
+                        <span class="toggle-slider"></span>
+                    </div>
+                </div>
+
+                <div class="toggle-control" style="display: none;">
+                    <label class="control-label">Auto Rotate</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="autoRotateToggle">
+                        <span class="toggle-slider"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earthworks Controls -->
+            <div class="control-section">
+                <div class="section-title">Earthworks Analysis</div>
+                <button id="loadBuildableAreaBtn" class="control-btn" disabled style="width: 100%;">
+                    No Buildable Area Available
+                </button>
+                <!-- Platform Definition -->
+                <div class="platform-controls" style="display: none;">
+                    <label class="control-label">Platform Size (m)</label>
+                    <div class="input-row">
+                        <input type="number" id="platformWidth" placeholder="Width" value="10" min="5" max="50" step="1">
+                        <input type="number" id="platformLength" placeholder="Length" value="10" min="5" max="50" step="1">
+                    </div>
+                </div>
+
+                <!-- Platform Rotation -->
+                <div class="platform-controls" style="display: none;">
+                    <label class="control-label">Platform Rotation</label>
+                    <div class="input-row">
+                        <input type="range" id="platformRotation" min="0" max="360" value="0" step="5" style="flex: 2;">
+                        <input type="number" id="platformRotationValue" value="0" min="0" max="360" step="5" style="flex: 1; margin-left: 8px;">
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #888; margin-top: 4px;">
+                        <span>0°</span>
+                        <span>180°</span>
+                        <span>360°</span>
+                    </div>
+                </div>
+
+                <!-- FFL Controls -->
+                <div class="ffl-controls">
+                    <label class="control-label">Finished Floor Level</label>
+                    <div class="ffl-options">
+                        <label class="radio-option">
+                            <input type="radio" name="fflMode" value="optimize" checked>
+                            <span>Auto-optimize</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="fflMode" value="manual">
+                            <span>Manual input</span>
+                        </label>
+                    </div>
+                    <input type="number" id="manualFFL" placeholder="FFL (m above base)" step="0.1" disabled>
+                </div>
+
+                <button id="calculateEarthworksBtn" class="control-btn" disabled style="width: 100%;">
+                    Calculate Earthworks
+                </button>
+                <button id="togglePlatformMoveBtn" class="control-btn" disabled style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); display: none;">
+                    🔒 Platform Movement: OFF
+                </button>
+                <button id="clearPlatformBtn" class="control-btn" disabled style="display: none;">
+                    Clear Platform
+                </button>
+            </div>
+
+            <!-- Earthworks Results -->
+            <div id="earthworksResults" class="control-section" style="display: none;">
+                <div class="section-title">Earthworks Results</div>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <span class="result-label">Cut Volume:</span>
+                        <span id="cutVolume" class="result-value">0 m³</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Fill Volume:</span>
+                        <span id="fillVolume" class="result-value">0 m³</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Net Earthwork:</span>
+                        <span id="netEarthwork" class="result-value">0 m³</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Platform Area:</span>
+                        <span id="platformArea" class="result-value">0 m²</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Final FFL:</span>
+                        <span id="finalFFL" class="result-value">0 m</span>
+                    </div>
+                </div>
+
+                <!-- Engineering Notes -->
+                <div id="engineeringNotes" class="engineering-section" style="display: none;">
+                    <!-- Notes will be populated by JavaScript -->
+                </div>
+            </div>
+
+
+
+            <!-- Map Overlay Controls -->
+
+
+
+
+        </div>
+    </div>
+
+    <script>
+        // Cut & Fill Analysis JavaScript
+        class TerrainViewer {
+            constructor() {
+                this.terrainData = null;
+                this.plot = null;
+                this.siteData = {{ site_data_json|safe if site_data_json else '{}' }};
+                this.isDragging = false;
+                this.dragOffset = { x: 0, y: 0 };
+                this.currentPlatformCenter = { x: 0.5, y: 0.5 }; // Center of terrain (0-1 range)
+                this.currentPlatformRotation = 0; // Rotation in degrees
+                this.platformMovementEnabled = false; // Toggle for platform movement mode
+                this.autoRotateInterval = null; // Auto-rotate interval
+
+                // Map overlay functionality
+                this.mapOverlay = null;
+                this.mapOverlayVisible = false;
+                this.mapboxToken = null;
+                this.terrainBounds = null; // Store terrain bounds
+
+                // Progress tracking
+                this.progressSteps = [
+                    { id: 1, name: 'Geocoding coordinates', weight: 10 },
+                    { id: 2, name: 'Identifying city region', weight: 15 },
+                    { id: 3, name: 'Retrieving property boundary', weight: 20 },
+                    { id: 4, name: 'Finding DEM tiles', weight: 25 },
+                    { id: 5, name: 'Searching elevation data', weight: 40 },
+                    { id: 6, name: 'Processing terrain data', weight: 50 },
+                    { id: 7, name: 'Creating visualisation', weight: 70 }
+                ];
+                this.currentProgress = 0;
+
+                this.initializeEventListeners();
+            this.showWelcomeMessage();
+
+            // Auto-load site data and generate terrain on initialization
+            this.autoInitializeTerrainGeneration();
+
+            // Listen for site boundary events if available
+                if (window.eventBus) {
+                    window.eventBus.on('site-boundary-created', (data) => {
+                        console.log('[TerrainViewer] Site boundary created:', data);
+                        if (data.coordinates) {
+                            // Update site data with new boundary
+                            this.siteData = this.siteData || {};
+                            this.siteData.coordinates = data.coordinates;
+                            this.siteData.area_m2 = data.area;
+
+                            // Store terrain bounds for synchronized rendering
+                            if (data.terrainBounds) {
+                                this.terrainBounds = data.terrainBounds;
+                                console.log('[TerrainViewer] Stored terrain bounds:', this.terrainBounds);
+                            }
+
+                            console.log('[TerrainViewer] Updated site data from boundary event');
+
+                            // Update map overlay if visible
+                            if (this.mapOverlayVisible) {
+
+                            }
+                        }
+                    });
+
+                    window.eventBus.on('site-boundary-loaded', (data) => {
+                        console.log('[TerrainViewer] Site boundary loaded:', data);
+                        if (data.coordinates) {
+                            // Update site data with loaded boundary
+                            this.siteData = this.siteData || {};
+                            this.siteData.coordinates = data.coordinates;
+                            this.siteData.area_m2 = data.area;
+
+                            // Calculate terrain bounds from loaded coordinates
+
+                            console.log('[TerrainViewer] Calculated terrain bounds from loaded boundary:', this.terrainBounds);
+
+                            console.log('[TerrainViewer] Updated site data from loaded boundary');
+                        }
+                    });
+
+                    window.eventBus.on('site-boundary-deleted', () => {
+                        console.log('[TerrainViewer] Site boundary deleted');
+                        if (this.siteData) {
+                            delete this.siteData.coordinates;
+                            delete this.siteData.area_m2;
+                            this.terrainBounds = null;
+                            console.log('[TerrainViewer] Cleared site boundary from site data');
+                        }
+                    });
+                }
+            }
+
+        async autoInitializeTerrainGeneration() {
+                try {
+                    // Check if we have site data already available from the template
+                    if (this.siteData && this.siteData.coordinates && this.siteData.coordinates.length > 0) {
+                        console.log('[TerrainViewer] Site data already available, proceeding with terrain generation');
+
+                        // Log what data we have available
+                        const availableData = [];
+                        if (this.siteData.coordinates) availableData.push('site boundary');
+                        if (this.siteData.buildable_area?.coordinates) availableData.push('buildable area');
+                        if (this.siteData.structure_placement?.coordinates) availableData.push('structure placement');
+                        if (this.siteData.floorplan_data?.boundaries) availableData.push('floor plan');
+
+                        console.log(`[TerrainViewer] Available data layers: ${availableData.join(', ')}`);
+
+                        await this.generateTerrain();
+                    } else {
+                        console.log('[TerrainViewer] No site data available for auto-initialization');
+
+                        // Try to load from project if we have a project ID
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const projectId = urlParams.get('project') || urlParams.get('project_id');
+
+                        if (projectId) {
+                            console.log('[TerrainViewer] Attempting to load site data from project:', projectId);
+                            try {
+                                const response = await apiClient.post('/load-site-data', { project_id: projectId });
+                                if (response.success && response.site_data) {
+                                    this.siteData = response.site_data;
+
+                                    // Log what data was loaded
+                                    const loadedData = [];
+                                    if (response.site_data.coordinates) loadedData.push('site boundary');
+                                    if (response.site_data.buildable_area?.coordinates) loadedData.push('buildable area');
+                                    if (response.site_data.structure_placement?.coordinates) loadedData.push('structure placement');
+                                    if (response.site_data.floorplan_data?.boundaries) loadedData.push('floor plan');
+
+                                    console.log(`[TerrainViewer] Loaded data layers: ${loadedData.join(', ')}`);
+                                    console.log('[TerrainViewer] Site data loaded from project, proceeding with terrain generation');
+
+                                    await this.generateTerrain();
+                                } else {
+                                    console.log('[TerrainViewer] No site data found in project');
+                                    this.showMessage('No site data found for this project. Please create site boundary data first.', 'info');
+                                }
+                            } catch (error) {
+                                console.error('[TerrainViewer] Error loading site data from project:', error);
+                                this.showMessage('Error loading project data. Please try again.', 'error');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Auto-initialization failed:', error);
+                    this.showMessage('Failed to initialize terrain viewer. Please try again.', 'error');
+                }
+            }
+
+        async loadSiteData() {
+                try {
+                    this.showLoading(true);
+                    this.clearMessages();
+                    this.updateProgressStatus('Loading site data...');
+
+                    // Get project ID from URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const projectId = urlParams.get('project_id') || urlParams.get('project');
+
+                    console.log('[TerrainViewer] Loading site data for project:', projectId);
+
+                    if (!projectId) {
+                        this.showError('No project ID found in URL');
+                        this.showLoading(false);
+                        return false;
+                    }
+
+                    const response = await fetch('/api/load-site-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            project_id: projectId
+                        })
+                    });
+
+                    console.log('[TerrainViewer] Site data response status:', response.status);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('[TerrainViewer] Site data response:', result);
+
+                    if (result.success) {
+                        this.siteData = result.site_data;
+
+                        // Validate site data structure
+                        if (!this.siteData || !this.siteData.coordinates || this.siteData.coordinates.length === 0) {
+                            this.showError('Site data loaded but contains no coordinates. Please draw a site boundary first.');
+                            return false;
+                        }
+
+                        this.info('Site data loaded successfully:', this.siteData);
+
+                        // Enable terrain generation button
+                        document.getElementById('generateTerrainBtn').disabled = false;
+
+                        return true;
+
+                    } else {
+                    this.showError(result.error || 'Failed to load site data', result);
+                    console.error('[TerrainViewer] Site data loading failed:', result.error);
+                    return false;
+                }
+
+            } catch (error) {
+                this.showError(`Error loading site data: ${error.message}`);
+                console.error('[TerrainViewer] Site data loading error:', error);
+                return false;
+            } finally {
+                this.showLoading(false);
+            }
+
+            return false;
+        }
+
+            updateStatus(message, isError = false) {
+                try {
+                    // Use the correct progress status element ID
+                    const statusElement = document.getElementById('progressStatus');
+                    if (statusElement && message) {
+                        statusElement.textContent = message;
+                    } else if (message) {
+                        console.log('[TerrainViewer] Status update (no DOM element):', message);
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error updating status:', error);
+                }
+            }
+
+            updateProgress(percentage, message) {
+                try {
+                    // Use the correct progress bar element IDs
+                    const progressBar = document.getElementById('progressBar');
+                    const progressPercent = document.getElementById('progressPercent');
+
+                    if (progressBar) {
+                        progressBar.style.width = `${percentage}%`;
+                    }
+
+                    if (progressPercent) {
+                        progressPercent.textContent = `${Math.round(percentage)}%`;
+                    }
+
+                    if (!progressBar && !progressPercent) {
+                        console.log('[TerrainViewer] Progress update (no DOM elements):', `${percentage}% - ${message}`);
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error updating progress:', error);
+                }
+            }
+
+            showError(errorMessage) {
+                try {
+                    console.error('[TerrainViewer] Terrain generation error:', errorMessage);
+                    this.updateStatus(errorMessage || 'Unknown error occurred', true);
+                    this.updateProgress(0, 'Error occurred');
+
+                    // Hide loading spinner if present
+                    const loadingElement = document.getElementById('terrainLoading');
+                    if (loadingElement) {
+                        loadingElement.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error in showError:', error);
+                }
+            }
+
+            showSuccess(message) {
+                try {
+                    console.log('[TerrainViewer] Success:', message);
+                    this.updateStatus(message || 'Terrain generated successfully', false);
+                    this.updateProgress(100, 'Complete');
+                } catch (error) {
+                    console.error('[TerrainViewer] Error in showSuccess:', error);
+                }
+            }
+
+
+
+
+
+            initializeEventListeners() {
+                document.getElementById('resetViewBtn').addEventListener('click', () => this.resetView());
+                document.getElementById('topViewBtn').addEventListener('click', () => this.setTopView());
+                document.getElementById('sideViewBtn').addEventListener('click', () => this.setSideView());
+                document.getElementById('perspectiveViewBtn').addEventListener('click', () => this.setPerspectiveView());
+                document.getElementById('loadBuildableAreaBtn').addEventListener('click', () => this.loadBuildableAreaAsPlatform());
+
+                // Earthworks controls
+                document.getElementById('calculateEarthworksBtn').addEventListener('click', () => this.calculateEarthworks());
+                document.getElementById('clearPlatformBtn').addEventListener('click', () => this.clearPlatform());
+
+                // FFL mode radio buttons
+                document.querySelectorAll('input[name="fflMode"]').forEach(radio => {
+                    radio.addEventListener('change', () => this.updateFflMode());
+                });
+
+                // Platform rotation controls
+                document.getElementById('platformRotation').addEventListener('input', (e) => this.updateRotation(e.target.value));
+                document.getElementById('platformRotationValue').addEventListener('input', (e) => this.updateRotation(e.target.value));
+
+                // Platform movement toggle
+                document.getElementById('togglePlatformMoveBtn').addEventListener('click', () => this.togglePlatformMovement());
+
+                
+
+                // Visualization controls
+                document.getElementById('terrainOpacity').addEventListener('input', (e) => this.updateTerrainOpacity(e.target.value));
+                document.getElementById('verticalScale').addEventListener('input', (e) => this.updateVerticalScale(e.target.value));
+                document.getElementById('colorSchemeSelect').addEventListener('change', (e) => this.updateColorScheme(e.target.value));
+                document.getElementById('gridToggle').addEventListener('change', (e) => this.toggleGrid(e.target.checked));
+                document.getElementById('autoRotateToggle').addEventListener('change', (e) => this.toggleAutoRotate(e.target.checked));
+
+                this.updateFflMode(); // Initialize FFL mode
+            }
+
+
+
+            showWelcomeMessage() {
+                const canvas = document.getElementById('terrainCanvas');
+                canvas.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #cccccc; text-align: center; flex-direction: column;">
+                        <h2 style="margin: 0 0 8px 0; color: #ffffff;">Cut & Fill Analysis</h2>
+                        <p style="margin: 0; max-width: 400px;">Click "Generate 3D Terrain" to create a detailed elevation model of your site using LiDAR data.</p>
+                    </div>
+                `;
+            }
+
+            async generateTerrain() {
+                const progressContainer = document.getElementById('progressContainer');
+                const progressBar = document.getElementById('progressBar');
+                const progressStatus = document.getElementById('progressStatus');
+
+                if (!this.siteData || !this.siteData.coordinates) {
+                    this.showError('Please load site data first using the "Load Site Data" button.');
+                    return;
+                }
+
+                try {
+                    // Ensure progress container is visible and properly initialized
+                    this.showLoading(true);
+
+                    // Force progress container to be visible
+                    if (progressContainer) {
+                        progressContainer.style.display = 'block';
+                        progressContainer.style.visibility = 'visible';
+                    }
+
+                    if (progressStatus) {
+                        progressStatus.textContent = 'Generating 3D terrain data...';
+                    }
+                    if (progressBar) {
+                        progressBar.style.width = '0%';
+                    }
+
+                    console.log('[TerrainViewer] Starting terrain generation with site data:', this.siteData);
+
+                    // Start progress simulation to show user feedback
+                    this.simulateProgressUpdates();
+
+                    // Add terrain bounds if available from site boundary events
+                    const enhancedSiteData = { ...this.siteData };
+                    if (this.terrainBounds) {
+                        enhancedSiteData.terrainBounds = this.terrainBounds;
+                        console.log('[TerrainViewer] Using terrain bounds:', this.terrainBounds);
+                    }
+
+                    const response = await fetch('/api/generate-terrain', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            site_data: enhancedSiteData
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.terrainData = result;
+
+                        // Store Mapbox tile info if provided
+                        if (result.mapbox_tile_url) {
+                            this.mapboxTileUrl = result.mapbox_tile_url;
+                            console.log('[TerrainViewer] Received Mapbox tile URL:', this.mapboxTileUrl);
+                        }
+
+                        // Complete all steps as successful
+                        for (let i = 1; i <= 7; i++) {
+                            this.updateProgress(i, 'completed');
+                        }
+                        this.updateProgressBar(100);
+                        this.updateProgressStatus('Complete!');
+
+                        // Small delay to show completion before rendering
+                        setTimeout(() => {
+                            this.renderTerrain();
+                            this.enableViewControls();
+                            this.enableEarthworksControls();
+                            this.enableBuildableAreaButton();
+                            this.showSuccess('3D Terrain Generated');
+                            console.log('[TerrainViewer] Terrain generation completed successfully');
+
+                            // Hide progress after a moment
+                            setTimeout(() => {
+                                this.showLoading(false);
+                            }, 1500);
+                        }, 500);
+                    } else {
+                        // Handle error - determine which step failed based on error message
+                        let failedStep = 1;
+                        const errorMsg = result.error || '';
+
+                        if (errorMsg.includes('coordinates') || errorMsg.includes('geocoding')) {
+                            failedStep = 1;
+                        } else if (errorMsg.includes('city') || errorMsg.includes('region')) {
+                            failedStep = 2;
+                        } else if (errorMsg.includes('property') || errorMsg.includes('boundary')) {
+                            failedStep = 3;
+                        } else if (errorMsg.includes('DEM') || errorMsg.includes('tile')) {
+                            failedStep = 4;
+                        } else if (errorMsg.includes('download') || errorMsg.includes('elevation')) {
+                            failedStep = 5;
+                        } else if (errorMsg.includes('process') || errorMsg.includes('terrain')) {
+                            failedStep = 6;
+                        } else {
+                            failedStep = 7;
+                        }
+
+                        // Mark previous steps as completed and current as error
+                        for (let i = 1; i < failedStep; i++) {
+                            this.updateProgress(i, 'completed');
+                        }
+                        this.updateProgress(failedStep, 'error');
+                        this.updateProgressStatus(`Error: ${result.error}`);
+
+                        this.showError(result.error || 'Failed to generate terrain data');                        console.error('[TerrainViewer] Terrain generation failed:', result.error);
+                        this.showLoading(false);
+                    }
+
+                } catch (error) {
+                    // Network or parsing error
+                    this.updateProgress(1, 'error');
+                    this.updateProgressStatus('Network error occurred');
+
+                    this.showError(`Error: ${error.message}`);
+                    console.error('[TerrainViewer] Terrain generation error:', error);
+                    this.showLoading(false);
+                }
+            }
+
+            simulateProgressUpdates() {
+                // Simulate realistic progress through steps while backend processes
+                const steps = [
+                    { step: 1, delay: 200, message: 'Geocoding coordinates...' },
+                    { step: 2, delay: 800, message: 'Identifying city region...' },
+                    { step: 3, delay: 1500, message: 'Retrieving property boundary...' },
+                    { step: 4, delay: 2500, message: 'Finding DEM tiles...' },
+                    { step: 5, delay: 3500, message: 'Searching elevation data...' },
+                    { step: 6, delay: 8000, message: 'Processing terrain data...' },
+                    { step: 7, delay: 12000, message: 'Creating visualisation...' }
+                ];
+
+                steps.forEach(({ step, delay, message }) => {
+                    setTimeout(() => {
+                        // Only update if we're still loading (not completed or errored)
+                        if (document.getElementById('progressContainer').style.display !== 'none') {
+                            this.updateProgress(step, 'active');
+                            this.updateProgressStatus(message);
+                            this.updateProgressBar(this.progressSteps.find(s => s.id === step)?.weight || 0);
+                        }
+                    }, delay);
+                });
+            }
+
+            renderTerrain() {
+                if (!this.terrainData) return;
+
+                const data = this.terrainData;
+                const canvas = document.getElementById('terrainCanvas');
+
+                // Create main terrain surface
+                const traces = [];
+
+                // Main terrain surface with contours
+                traces.push({
+                    type: 'surface',
+                    z: data.elevation_data,
+                    x: data.x_coords,
+                    y: data.y_coords,
+                    colorscale: [
+                        [0, '#0d1421'],      // Deep navy (lowest elevation)
+                        [0.15, '#1a2332'],   // Dark blue-grey
+                        [0.3, '#2d4a5a'],    // Medium blue-grey
+                        [0.45, '#547bf7'],   // EngineRoom blue
+                        [0.6, '#6287ff'],    // Bright blue
+                        [0.75, '#84a7f7'],   // Light blue
+                        [0.85, '#a3c4f3'],   // Very light blue
+                        [0.95, '#e8f2ff'],   // Almost white blue
+                        [1, '#ffffff']       // Pure white (highest elevation)
+                    ],
+                    opacity: 1.0,
+                    name: 'Terrain',
+                    showscale: false,
+                    contours: {
+                        z: {
+                            show: true,
+                            usecolormap: false,
+                            color: 'rgba(255, 255, 255, 0.4)',
+                            width: 2,
+                            project: { z: true },
+                            highlightcolor: '#ff6b6b',
+                            highlightwidth: 3
+                        }
+                    },
+                    lighting: {
+                        ambient: 0.9,
+                        diffuse: 0.5,
+                        specular: 0.02,
+                        roughness: 0.8,
+                        fresnel: 0.1
+                    }
+                });
+
+                // Base level
+                traces.push({
+                    type: 'surface',
+                    z: Array(data.elevation_data.length).fill(null).map(() => 
+                        Array(data.elevation_data[0].length).fill(data.base_level)
+                    ),
+                    x: data.x_coords,
+                    y: data.y_coords,
+                    colorscale: [[0, 'rgba(13, 20, 33, 0.8)'], [1, 'rgba(13, 20, 33, 0.8)']],
+                    showscale: false,
+                    opacity: 0.7,
+                    name: 'Base'
+                });
+
+                // Property boundary is hidden by default
+                // (Property boundary trace removed to keep terrain view clean)
+                // Add polygon overlays to the plot if available
+                if (data.polygon_overlays) {
+                    console.log('[TerrainViewer] Adding polygon overlays:', Object.keys(data.polygon_overlays));
+
+                    Object.entries(data.polygon_overlays).forEach(([key, overlay]) => {
+                        if (overlay.coordinates && overlay.coordinates.length > 0) {
+                            console.log(`[TerrainViewer] Adding ${key} overlay with ${overlay.coordinates.length} coordinates`);
+
+                            // Convert coordinates to x, y arrays for plotting
+                            const overlayX = [];
+                            const overlayY = [];
+
+                            overlay.coordinates.forEach(coord => {
+                                if (Array.isArray(coord) && coord.length >= 2) {
+                                    // Convert from [lng, lat] to projected coordinates
+                                    const projectedCoord = this.convertToProjectedCoords(coord[0], coord[1], data);
+                                    overlayX.push(projectedCoord.x);
+                                    overlayY.push(projectedCoord.y);
+                                }
+                            });
+
+                            // Close the polygon by adding the first point at the end
+                            if (overlayX.length > 0) {
+                                overlayX.push(overlayX[0]);
+                                overlayY.push(overlayY[0]);
+                            }
+
+                            // Determine line style and width based on overlay type
+                            let lineWidth = 8;
+                            let lineDash = 'solid';
+                            let zOffset = 0.5;
+
+                            if (key === 'site_boundary') {
+                                lineWidth = 10;
+                                zOffset = 0.8;
+                            } else if (key === 'buildable_area') {
+                                lineWidth = 6;
+                                lineDash = 'dash';
+                                zOffset = 0.6;
+                            } else if (key === 'structure_placement') {
+                                lineWidth = 8;
+                                lineDash = 'dot';
+                                zOffset = 1.0;
+                            }
+
+                            // Add to plot
+                            traces.push({
+                                type: 'scatter3d',
+                                x: overlayX,
+                                y: overlayY,
+                                z: Array(overlayX.length).fill(data.base_level + zOffset),
+                                mode: 'lines',
+                                line: { 
+                                    color: overlay.color || '#007cbf', 
+                                    width: lineWidth,
+                                    dash: lineDash
+                                },
+                                name: overlay.name || key,
+                                showlegend: true,
+                                opacity: 0.9
+                            });
+
+                            // Add area information to legend if available
+                            if (overlay.area_m2) {
+                                const lastTrace = traces[traces.length - 1];
+                                lastTrace.name += ` (${overlay.area_m2.toFixed(1)} m²)`;
+                            }
+                        }
+                    });
+
+                    // Log overlay summary
+                    const overlayTypes = Object.keys(data.polygon_overlays);
+                    console.log(`[TerrainViewer] Successfully added ${overlayTypes.length} polygon overlays: ${overlayTypes.join(', ')}`);
+                }
+
+                // Calculate appropriate scaling for terrain visualisation
+                const maxX = data.width_m || 50;
+                const maxY = data.length_m || 50;
+                const elevationRange = Math.max(...data.elevation_data.flat()) - Math.min(...data.elevation_data.flat());
+
+                // Use a reasonable elevation scale - typically 2-3x the elevation range for good visibility
+                const elevationScale = Math.max(elevationRange * 2.5, maxX * 0.3); // At least 30% of horizontal scale
+                const maxDimension = Math.max(maxX, maxY);
+
+                const layout = {
+                    scene: {
+                        aspectmode: 'cube',
+                        xaxis: { 
+                            title: 'Width (m)',
+                            titlefont: { color: 'white', size: 14 },
+                            tickformat: '.0f',
+                            tickfont: { color: 'white', size: 12 },
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.3)',
+                            gridwidth: 2,
+                            color: 'white',
+                            showbackground: true,
+                            backgroundcolor: 'rgba(13, 20, 33, 0.5)',
+                            range: [0, maxX]
+                        },
+                        yaxis: { 
+                            title: 'Length (m)',
+                            titlefont: { color: 'white', size: 14 },
+                            tickformat: '.0f',
+                            tickfont: { color: 'white', size: 12 },
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.3)',
+                            gridwidth: 2,
+                            color: 'white',
+                            showbackground: true,
+                            backgroundcolor: 'rgba(13, 20, 33, 0.5)',
+                            range: [0, maxY]
+                        },
+                        zaxis: { 
+                            title: 'Elevation (m)',
+                            titlefont: { color: 'white', size: 14 },
+                            tickformat: '.1f',
+                            tickfont: { color: 'white', size: 12 },
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.4)',
+                            gridwidth: 2,
+                            color: 'white',
+                            showbackground: true,
+                            backgroundcolor: 'rgba(13, 20, 33, 0.5)',
+                            range: [Math.min(...data.elevation_data.flat()) - 1, Math.max(...data.elevation_data.flat()) + 2]
+                        },
+                        aspectmode: 'manual',
+                        aspectratio: { 
+                            x: 1, 
+                            y: maxY/ maxX,                             z: elevationScale / maxDimension 
+                                                },
+                        bgcolor: '#0d1421',
+                        camera: {
+                            eye: { x: 0, y: -2.0, z: 1.2 },
+                            center: { x: 0, y: 0, z: 0 },
+                            up: { x: 0, y: 0, z: 1 }
+                        }
+                    },
+                    margin: { l: 0, r: 60, b: 0, t: 50 },
+                    paper_bgcolor: '#0d1421',
+                    plot_bgcolor: '#0d1421',
+                    font: { color: 'white', family: 'Inter, sans-serif' }
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d'],
+                    displaylogo: false
+                };
+
+                Plotly.newPlot(canvas, traces, layout, config);
+                this.plot = canvas;
+
+                // Add mouse event listeners for platform dragging
+                this.setupPlatformDragging();
+            }
+
+            setupPlatformDragging() {
+                const canvas = document.getElementById('terrainCanvas');
+                const plotlyDiv = canvas.querySelector('.plotly-graph-div') || canvas;
+
+                const mouseDownHandler = (event) => {
+                    if (!this.earthworksData || !this.platformMovementEnabled) return;
+
+                    const coords = this.getTerrainCoordinates(event, plotlyDiv);
+
+                    if (this.isNearPlatform(coords.x, coords.y)) {
+                        this.startDrag(coords, plotlyDiv);
+                    }
+                };
+
+                const mouseMoveHandler = (event) => {
+                    if (!this.earthworksData || !this.platformMovementEnabled) return;
+
+                    const coords = this.getTerrainCoordinates(event, plotlyDiv);
+
+                    if (!this.isDragging) {
+                        this.updateCursor(coords, plotlyDiv);
+                        return;
+                    }
+
+                    this.updatePlatformPosition(coords);
+                };
+
+                const mouseUpHandler = () => {
+                    if (this.isDragging) {
+                        this.endDrag(plotlyDiv);
+                    }
+                };
+
+                const mouseLeaveHandler = () => {
+                    if (this.isDragging) {
+                        this.endDrag(plotlyDiv);
+                    }
+                };
+
+                // Clean up existing listeners
+                this.removeDragListeners(plotlyDiv);
+
+                // Add new listeners
+                plotlyDiv.addEventListener('mousedown', mouseDownHandler);
+                plotlyDiv.addEventListener('mousemove', mouseMoveHandler);
+                plotlyDiv.addEventListener('mouseup', mouseUpHandler);
+                plotlyDiv.addEventListener('mouseleave', mouseLeaveHandler);
+
+                console.log('[TerrainViewer] Platform dragging setup complete');
+            }
+
+            getTerrainCoordinates(event, plotlyDiv) {
+                const rect = plotlyDiv.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / rect.width;
+                const y = 1 - ((event.clientY - rect.top) / rect.height); // Invert Y axis
+                return { x, y };
+            }
+
+            startDrag(coords, plotlyDiv) {
+                console.log('[TerrainViewer] Starting platform drag');
+
+                this.isDragging = true;
+                this.dragStartPosition = { ...this.currentPlatformCenter };
+                this.dragOffset = { 
+                    x: coords.x - this.currentPlatformCenter.x, 
+                    y: coords.y - this.currentPlatformCenter.y 
+                };
+
+                plotlyDiv.style.cursor = 'grabbing';
+                Plotly.relayout(document.getElementById('terrainCanvas'), {'dragmode': false});
+                this.showDragFeedback(true);
+            }
+
+            updatePlatformPosition(coords) {
+                // Calculate new position with offset
+                let newX = coords.x - this.dragOffset.x;
+                let newY = coords.y - this.dragOffset.y;
+
+                // Keep platform within bounds
+                const margin = 0.1;
+                newX = Math.max(margin, Math.min(1 - margin, newX));
+                newY = Math.max(margin, Math.min(1 - margin, newY));
+
+                this.currentPlatformCenter = { x: newX, y: newY };
+                this.updateDragFeedback();
+
+                // Throttle recalculation
+                this.throttleRecalculation();
+            }
+
+            endDrag(plotlyDiv) {
+                console.log('[TerrainViewer] Ending platform drag');
+
+                this.isDragging = false;
+                plotlyDiv.style.cursor = 'default';
+
+                Plotly.relayout(document.getElementById('terrainCanvas'), {'dragmode': 'orbit'});
+                this.showDragFeedback(false);
+
+                // Reset visual feedback to normal state
+                this.updatePlatformVisualFeedback(false);
+
+                this.clearThrottledRecalculation();
+
+                // Only recalculate if position changed significantly
+                if (this.hasPositionChanged()) {
+                    this.recalculateEarthworks();
+                }
+            }
+
+            updateCursor(coords, plotlyDiv) {
+                if (!this.platformMovementEnabled) {
+                    plotlyDiv.style.cursor = 'default';
+                    this.updatePlatformVisualFeedback(false);
+                    return;
+                }
+
+                const isNear = this.isNearPlatform(coords.x, coords.y);
+                plotlyDiv.style.cursor = isNear ? 'grab' : 'default';
+
+                // Update visual feedback for platform selection
+                this.updatePlatformVisualFeedback(isNear);
+            }
+
+            updatePlatformVisualFeedback(isHovering) {
+                if (!this.plot || !this.earthworksData) return;
+
+                // Find the platform boundary trace
+                const currentData = this.plot.data;
+                const platformTraceIndex = currentData.findIndex(trace => 
+                    trace.name && trace.name.includes('Building Platform')
+                );
+
+                if (platformTraceIndex === -1) return;
+
+                // Create style updates for the platform trace
+                const styleUpdate = {
+                    'line.color': [isHovering ? '#a3c4f3' : '#84a7f7'], // Light blue when hovering, steel blue when normal
+                    'line.width': [isHovering ? 16 : 12], // Thicker when hovering
+                    'opacity': [isHovering ? 1.0 : 0.9]
+                };
+
+                // Update the trace styling
+                Plotly.restyle(this.plot, styleUpdate, [platformTraceIndex]);
+            }
+
+            hasPositionChanged() {
+                const threshold = 0.01;
+                return Math.abs(this.currentPlatformCenter.x - this.dragStartPosition.x) > threshold ||
+                       Math.abs(this.currentPlatformCenter.y - this.dragStartPosition.y) > threshold;
+            }
+
+            throttleRecalculation() {
+                if (this.dragUpdateTimeout) {
+                    clearTimeout(this.dragUpdateTimeout);
+                }
+                this.dragUpdateTimeout = setTimeout(() => {
+                    this.updateEarthworksDisplay();
+                    this.dragUpdateTimeout = null;
+                }, 100);
+            }
+
+            clearThrottledRecalculation() {
+                if (this.dragUpdateTimeout) {
+                    clearTimeout(this.dragUpdateTimeout);
+                    this.dragUpdateTimeout = null;
+                }
+            }
+
+            convertToProjectedCoords(lng, lat, data) {
+                /**
+                 * Convert from geographic coordinates (lng, lat) to local projected coordinates
+                 * based on the terrain data coordinate system
+                 */
+                try {
+                    // Get the terrain bounds from the data
+                    const terrainWidth = data.width_m || 50;
+                    const terrainLength = data.length_m || 50;
+                    
+                    // If we have x_coords and y_coords arrays, use them to determine the mapping
+                    if (data.x_coords && data.y_coords && data.x_coords.length > 0 && data.y_coords.length > 0) {
+                        // Get the min/max from the coordinate grids
+                        const xCoords = data.x_coords.flat();
+                        const yCoords = data.y_coords.flat();
+                        
+                        const minX = Math.min(...xCoords);
+                        const maxX = Math.max(...xCoords);
+                        const minY = Math.min(...yCoords);
+                        const maxY = Math.max(...yCoords);
+                        
+                        // For now, use a simple linear mapping based on terrain bounds
+                        // This is a simplified approach - in a real implementation you'd need proper coordinate transformation
+                        const relativeX = (lng - data.coordinates.lng) * 111320 * Math.cos(data.coordinates.lat * Math.PI / 180);
+                        const relativeY = (lat - data.coordinates.lat) * 111320;
+                        
+                        // Map to terrain coordinate system
+                        const terrainX = (terrainWidth / 2) + relativeX;
+                        const terrainY = (terrainLength / 2) + relativeY;
+                        
+                        return {
+                            x: Math.max(0, Math.min(terrainWidth, terrainX)),
+                            y: Math.max(0, Math.min(terrainLength, terrainY))
+                        };
+                    } else {
+                        // Fallback to simple center-based mapping
+                        return {
+                            x: terrainWidth / 2,
+                            y: terrainLength / 2
+                        };
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error in convertToProjectedCoords:', error);
+                    // Return center point as fallback
+                    return {
+                        x: (data.width_m || 50) / 2,
+                        y: (data.length_m || 50) / 2
+                    };
+                }
+            }
+
+            removeDragListeners(plotlyDiv) {
+                // Clean up any existing listeners to prevent duplicates
+                const events = ['mousedown', 'mousemove', 'mouseup', 'mouseleave'];
+                events.forEach(event => {
+                    plotlyDiv.removeEventListener(event, this[`${event}Handler`]);
+                });
+            }
+
+            isNearPlatform(x, y) {
+                if (!this.earthworksData) return false;
+
+                const dx = x - this.currentPlatformCenter.x;
+                const dy = y - this.currentPlatformCenter.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Threshold based on platform size relative to terrain
+                const platformWidth = parseFloat(document.getElementById('platformWidth').value) || 10;
+                const terrainWidth = this.terrainData?.width_m || 40;
+                const relativeSize = platformWidth / terrainWidth;
+                const threshold = Math.max(0.1, relativeSize * 1.5); // Adaptive threshold
+
+                return distance <= threshold;
+            }
+
+            showDragFeedback(show) {
+                const btn = document.getElementById('calculateEarthworksBtn');
+                if (show) {
+                    btn.textContent = 'Moving Platform...';
+                    btn.disabled = true;
+                    this.updatePlatformDragVisuals(true);
+                } else {
+                    btn.textContent = 'Calculate Earthworks';
+                    btn.disabled = false;
+                    this.updatePlatformDragVisuals(false);
+                }
+            }
+
+            updatePlatformDragVisuals(isDragging) {
+                if (!this.plot || !this.earthworksData) return;
+
+                const currentData = this.plot.data;
+                const platformTraceIndex = currentData.findIndex(trace => 
+                    trace.name && trace.name.includes('Building Platform')
+                );
+
+                if (platformTraceIndex === -1) return;
+
+                // Create style updates for dragging state
+                const styleUpdate = {
+                    'line.color': [isDragging ? '#cd853f' : '#84a7f7'], // Warm brown when dragging, steel blue when normal
+                    'line.width': [isDragging ? 18 : 12], // Extra thick when dragging
+                    'line.dash': [isDragging ? 'dash' : 'solid'], // Dashed line when dragging
+                    'opacity': [isDragging ? 1.0 : 0.9]
+                };
+
+                Plotly.restyle(this.plot, styleUpdate, [platformTraceIndex]);
+            }
+
+            updateDragFeedback() {
+                if (!this.isDragging || !this.terrainData) return;
+
+                const x = Math.round(this.currentPlatformCenter.x * this.terrainData.width_m);
+                const y = Math.round(this.currentPlatformCenter.y * this.terrainData.length_m);
+
+                document.getElementById('calculateEarthworksBtn').textContent = `Position: ${x}m, ${y}m`;
+            }
+
+            async updateEarthworksDisplay() {
+                // Lightweight update during drag - only update display values
+                if (!this.terrainData || !this.isDragging) return;
+
+                try {
+                    const platformCoords = this.getCurrentPlatformCoords();
+                    const optimizeFfl = document.querySelector('input[name="fflMode"][value="optimize"]').checked;
+                    const manualFfl = optimizeFfl ? null : parseFloat(document.getElementById('manualFFL').value);
+
+                    const response = await fetch('/api/calculate-earthworks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            terrain_data: this.terrainData,
+                            platform_coords: platformCoords,
+                            ffl: manualFfl,
+                            optimize_ffl: optimizeFfl
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        this.earthworksData = result;
+                        this.displayEarthworksResults(result);
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Update earthworks display error:', error);
+                }
+            }
+
+            async recalculateEarthworks() {
+                // Full recalculation with visualisation update
+                if (!this.terrainData) return;
+
+                try {
+                    this.clearMessages();
+                    this.setButtonState('calculating');
+
+                    const platformCoords = this.getCurrentPlatformCoords();
+                    const optimizeFfl = document.querySelector('input[name="fflMode"][value="optimize"]').checked;
+                    const manualFfl = optimizeFfl ? null : parseFloat(document.getElementById('manualFFL').value);
+
+                    const response = await fetch('/api/calculate-earthworks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            terrain_data: this.terrainData,
+                            platform_coords: platformCoords,
+                            ffl: manualFfl,
+                            optimize_ffl: optimizeFfl
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.earthworksData = result;
+                        this.displayEarthworksResults(result);
+                        this.renderTerrainWithPlatform();
+                        this.showSuccess('Earthworks updated successfully');
+                        document.getElementById('clearPlatformBtn').disabled = false;
+                    } else {
+                        this.showError(result.error || 'Failed to calculate earthworks');
+                    }
+                } catch (error) {
+                    this.showError(`Error: ${error.message}`);
+                    console.error('[TerrainViewer] Earthworks calculation error:', error);
+                } finally {
+                    this.setButtonState('ready');
+                }
+            }
+
+            getCurrentPlatformCoords() {
+                const width = parseFloat(document.getElementById('platformWidth').value) || 15;
+                const length = parseFloat(document.getElementById('platformLength').value) || 20;
+
+                return this.calculateRotatedPlatformCoords(
+                    this.currentPlatformCenter, 
+                    width, 
+                    length, 
+                    this.terrainData.width_m, 
+                    this.terrainData.length_m, 
+                    this.currentPlatformRotation
+                );
+            }
+
+            setButtonState(state) {
+                const btn = document.getElementById('calculateEarthworksBtn');
+                switch (state) {
+                    case 'calculating':
+                        btn.textContent = 'Updating...';
+                        btn.disabled = true;
+                        break;
+                    case 'ready':
+                    default:
+                        btn.textContent = 'Calculate Earthworks';
+                        btn.disabled = false;
+                        break;
+                }
+            }
+
+            enableViewControls() {
+                document.getElementById('resetViewBtn').disabled = false;
+                document.getElementById('topViewBtn').disabled = false;
+                document.getElementById('sideViewBtn').disabled = false;
+                document.getElementById('perspectiveViewBtn').disabled = false;
+            }
+
+            enableEarthworksControls() {
+                document.getElementById('calculateEarthworksBtn').disabled = false;
+            }
+
+            enableBuildableAreaButton() {
+                const btn = document.getElementById('loadBuildableAreaBtn');
+                if (!btn) {
+                    console.error('[TerrainViewer] Load buildable area button not found');
+                    return;
+                }
+
+                // Check if buildable area data exists
+                if (this.siteData && this.siteData.buildable_area) {
+                    const buildableArea = this.siteData.buildable_area;
+
+                    // Check for coordinates in different possible formats
+                    const hasCoords = buildableArea.coordinates || 
+                                    buildableArea.buildable_coords || 
+                                    (buildableArea.area_m2 && buildableArea.area_m2 > 0);
+
+                    console.log('[TerrainViewer] Buildable area validation:', {
+                        hasCoords,
+                        coordinates: buildableArea.coordinates,
+                        buildable_coords: buildableArea.buildable_coords,
+                        area_m2: buildableArea.area_m2,
+                        buildable_area_m2: buildableArea.buildable_area_m2
+                    });
+
+                    if (hasCoords) {
+                        btn.disabled = false;
+                        const area = buildableArea.area_m2 || buildableArea.buildable_area_m2 || 0;
+                        btn.textContent = 'Use Buildable Area';
+                        console.log('[TerrainViewer] Buildable area button enabled with area:', area);
+                    } else {
+                        btn.disabled = true;
+                        btn.textContent = 'No Buildable Area Available';
+                        console.log('[TerrainViewer] Buildable area button disabled - no coordinates found');
+                    }
+                } else {
+                    btn.disabled = true;
+                    btn.textContent = 'No Buildable Area Available';
+                    console.log('[TerrainViewer] Buildable area button disabled - no buildable area data');
+                }
+            }
+
+            async loadBuildableAreaAsPlatform() {
+                if (!this.terrainData) {
+                    this.showError('Please generate terrain data first');
+                    return;
+                }
+
+                const buildableArea = this.siteData.buildable_area;
+                const buildableCoords = buildableArea.coordinates || buildableArea.buildable_coords;
+                
+                if (!this.siteData || !buildableArea || !buildableCoords) {
+                    this.showError('No buildable area data available. Please create buildable area in Site Inspector first.');
+                    console.log('[TerrainViewer] Missing buildable area data:', {
+                        hasSiteData: !!this.siteData,
+                        hasBuildableArea: !!buildableArea,
+                        hasBuildableCoords: !!buildableCoords,
+                        buildableAreaKeys: buildableArea ? Object.keys(buildableArea) : []
+                    });
+                    return;
+                }
+
+                try {
+                    this.clearMessages();
+                    const btn = document.getElementById('loadBuildableAreaBtn');
+                    const originalText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = 'Loading...';
+
+                    // Get buildable area coordinates (already extracted above)
+                    // const buildableCoords is already defined above
+
+                    console.log('[TerrainViewer] Loading buildable area as platform:', {
+                        coords: buildableCoords,
+                        area: this.siteData.buildable_area.buildable_area_m2
+                    });
+
+                    // Convert buildable area coordinates to platform format
+                    // The buildable_coords are in [lat, lng] format, we need [lng, lat] for platform_coords
+                    const platformCoords = buildableCoords.map(coord => {
+                        if (Array.isArray(coord) && coord.length >= 2) {
+                            return { x: coord[1], y: coord[0] }; // Convert [lat, lng] to {x: lng, y: lat}
+                        }
+                        return coord;
+                    });
+
+                    // Set platform movement center to buildable area center
+                    this.currentPlatformCenter = this.calculatePolygonCenter(platformCoords);
+                    this.currentPlatformRotation = 0; // Reset rotation
+
+                    // Get FFL parameters
+                    const optimizeFfl = document.querySelector('input[name="fflMode"][value="optimize"]').checked;
+                    const manualFfl = optimizeFfl ? null : parseFloat(document.getElementById('manualFFL').value);
+
+                    console.log('[TerrainViewer] Calculating earthworks with buildable area...', {
+                        platformCoords,
+                        optimizeFfl,
+                        manualFfl
+                    });
+
+                    const response = await fetch('/api/calculate-earthworks', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            terrain_data: this.terrainData,
+                            platform_coords: platformCoords,
+                            ffl: manualFfl,
+                            optimize_ffl: optimizeFfl
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.earthworksData = result;
+                        this.displayEarthworksResults(result);
+                        this.renderTerrainWithPlatform();
+                        this.showSuccess(`Buildable area loaded as platform (${result.platform_area_m2.toFixed(1)} m²) - earthworks calculated successfully`);
+                        document.getElementById('clearPlatformBtn').disabled = false;
+                        document.getElementById('togglePlatformMoveBtn').disabled = false;
+                    } else {
+                        this.showError(result.error || 'Failed to calculate earthworks for buildable area');
+                    }
+
+                } catch (error) {
+                    this.showError(`Error: ${error.message}`);
+                    console.error('[TerrainViewer] Buildable area loading error:', error);
+                } finally {
+                    const btn = document.getElementById('loadBuildableAreaBtn');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            }
+
+            calculatePolygonCenter(coords) {
+                // Calculate the centroid of the polygon
+                let centerX = 0;
+                let centerY = 0;
+
+                for (const coord of coords) {
+                    if (coord.x !== undefined && coord.y !== undefined) {
+                        centerX += coord.x;
+                        centerY += coord.y;
+                    }
+                }
+
+                centerX /= coords.length;
+                centerY /= coords.length;
+
+                // Convert to relative coordinates (0-1 range) within terrain bounds
+                if (this.terrainData) {
+                    const terrainWidth = this.terrainData.width_m || 50;
+                    const terrainLength = this.terrainData.length_m || 50;
+
+                    // This is a simplified conversion - in practice, you'd need proper coordinate transformation
+                    return {
+                        x: 0.5, // Center for now - would need proper lat/lng to local coordinate conversion
+                        y: 0.5
+                    };
+                }
+
+                return { x: 0.5, y: 0.5 };
+            }
+
+            async togglePlatformMovement() {
+                this.platformMovementEnabled = !this.platformMovementEnabled;
+                const btn = document.getElementById('togglePlatformMoveBtn');
+
+                if (this.platformMovementEnabled) {
+                    btn.textContent = '🔓 Platform Movement: ON';
+                    btn.style.background = 'linear-gradient(135deg, #dc3545 0%, #fd7e14 100%)';
+                    this.showSuccess('Platform movement enabled - hover over platform to move it');
+                } else {
+                    btn.textContent = '🔒 Platform Movement: OFF';
+                    btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    this.showSuccess('Platform movement disabled - map navigation enabled');
+
+                    // Reset any dragging state
+                    if (this.isDragging) {
+                        this.endDrag(document.getElementById('terrainCanvas'));
+                    }
+
+                    // Reset cursor and visual feedback
+                    const plotlyDiv = document.getElementById('terrainCanvas').querySelector('.plotly-graph-div');
+                    if (plotlyDiv) {
+                        plotlyDiv.style.cursor = 'default';
+                    }
+                    this.updatePlatformVisualFeedback(false);
+                }
+
+                console.log('[TerrainViewer] Platform movement toggled:', this.platformMovementEnabled);
+            }
+
+            resetView() {
+                if (this.plot) {
+                    Plotly.relayout(this.plot, {
+                        'scene.camera': {
+                            eye: { x: 0, y: -2.0, z: 1.2 }
+                        }
+                    });
+                }
+            }
+
+            setTopView() {
+                if (this.plot) {
+                    Plotly.relayout(this.plot, {
+                        'scene.camera': {
+                            eye: { x: 0, y: 0, z: 2.5 }
+                        }
+                    });
+                }
+            }
+
+            setSideView() {
+                if (this.plot) {
+                    Plotly.relayout(this.plot, {
+                        'scene.camera': {
+                            eye: { x: 2.5, y: 0, z: 0 }
+                        }
+                    });
+                }
+            }
+
+            setPerspectiveView() {
+                if (this.plot) {
+                    Plotly.relayout(this.plot, {
+                        'scene.camera': {
+                            eye: { x: 0, y: -2.0, z: 1.2 }
+                        }
+                    });
+                }
+            }
+
+            showLoading(show) {
+                const progressContainer = document.getElementById('progressContainer');
+                const spinner = document.getElementById('loadingSpinner');
+
+                if (show) {
+                    if (progressContainer) {
+                        progressContainer.style.display = 'block';
+                        progressContainer.style.visibility = 'visible';
+                    }
+                    if (spinner) {
+                        spinner.classList.remove('active');
+                    }
+                    this.initializeProgress();
+                    console.log('[TerrainViewer] Progress container shown');
+                } else {
+                    if (progressContainer) {
+                        progressContainer.style.display = 'none';
+                    }
+                    if (spinner) {
+                        spinner.classList.remove('active');
+                    }
+                    this.resetProgress();
+                    console.log('[TerrainViewer] Progress container hidden');
+                }
+            }
+
+            initializeProgress() {
+                this.currentProgress = 0;
+                this.updateProgressBar(0);
+                this.updateProgressStatus('Initializing terrain generation...');
+
+                // Reset all steps
+                const steps = document.querySelectorAll('.progress-step');
+                steps.forEach(step => {
+                    step.classList.remove('active', 'completed', 'error');
+                });
+            }
+
+            resetProgress() {
+                this.currentProgress = 0;
+                this.updateProgressBar(0);
+                this.updateProgressStatus('');
+
+                // Reset all steps
+                const steps = document.querySelectorAll('.progress-step');
+                steps.forEach(step => {
+                    step.classList.remove('active', 'completed', 'error');
+                });
+            }
+
+            updateProgress(stepId, status = 'active') {
+                const step = this.progressSteps.find(s => s.id === stepId);
+                if (!step) return;
+
+                // Update current step visual state
+                const stepElement = document.querySelector(`.progress-step[data-step="${stepId}"]`);
+                if (stepElement) {
+                    stepElement.classList.remove('active', 'completed', 'error');
+                    stepElement.classList.add(status);
+                }
+
+                // Update progress bar
+                if (status === 'completed') {
+                    this.currentProgress = step.weight;
+
+                    // Mark previous steps as completed
+                    for (let i = 1; i < stepId; i++) {
+                        const prevStep = document.querySelector(`.progress-step[data-step="${i}"]`);
+                        if (prevStep) {
+                            prevStep.classList.remove('active', 'error');
+                            prevStep.classList.add('completed');
+                        }
+                    }
+                } else if (status === 'active') {
+                    // Mark previous steps as completed
+                    for (let i = 1; i < stepId; i++) {
+                        const prevStep = document.querySelector(`.progress-step[data-step="${i}"]`);
+                        if (prevStep && !prevStep.classList.contains('error')) {
+                            prevStep.classList.remove('active');
+                            prevStep.classList.add('completed');
+                        }
+                    }
+                }
+
+                this.updateProgressBar(this.currentProgress);
+                this.updateProgressStatus(step.name);
+            }
+
+            updateProgressBar(percentage) {
+                const progressBar = document.getElementById('progressBar');
+                const progressPercent = document.getElementById('progressPercent');
+
+                if (progressBar) {
+                    progressBar.style.width = `${percentage}%`;
+                }
+                if (progressPercent) {
+                    progressPercent.textContent = `${Math.round(percentage)}%`;
+                }
+            }
+
+            updateProgressStatus(status) {
+                const statusElement = document.getElementById('progressStatus');
+                if (statusElement) {
+                    statusElement.textContent = status;
+                }
+            }
+
+            showError(message, errorData = null) {
+                const errorDiv = document.getElementById('errorMessage');
+                if (errorDiv) {
+                    // Check if this is a location not supported error
+                    if (errorData && errorData.error_type === 'location_not_supported') {
+                        const region = errorData.detected_location?.region || 'an international location';
+                        errorDiv.innerHTML = `
+                            <div class="location-error">
+                                <h4>🌍 Location Not Supported</h4>
+                                <p><strong>This location appears to be in ${region}.</strong></p>
+                                <p>3D terrain visualisation is currently only available for New Zealand locations.</p>
+                                <div class="error-details">
+                                    <p><strong>Why?</strong> Our elevation data is sourced from Land Information New Zealand (LINZ) and covers New Zealand only.</p>
+                                    <p><strong>Coming Soon:</strong> We're working on expanding coverage to Australia and other regions.</p>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        errorDiv.textContent = message || 'An error occurred';
+                    }
+                    errorDiv.style.display = 'block';
+                } else {
+                    console.warn('[TerrainViewer] Error message div not found, logging to console only');
+                }
+                console.error('[TerrainViewer]', message, errorData);
+            }
+
+            showSuccess(message) {
+                const successDiv = document.getElementById('successMessage');
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+            }
+
+            clearMessages() {
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'none';
+            }
+
+            updateFflMode() {
+                const manualMode = document.querySelector('input[name="fflMode"][value="manual"]').checked;
+                const manualFflInput = document.getElementById('manualFFL');
+                manualFflInput.disabled = !manualMode;
+            }
+
+            updateRotation(rotation) {
+                this.currentPlatformRotation = parseFloat(rotation) || 0;
+
+                // Sync both rotation controls
+                document.getElementById('platformRotation').value = this.currentPlatformRotation;
+                document.getElementById('platformRotationValue').value = this.currentPlatformRotation;
+
+                console.log('[TerrainViewer] Platform rotation updated to:', this.currentPlatformRotation);
+
+                // Throttle recalculation if earthworks data exists
+                if (this.earthworksData) {
+                    this.throttleRotationUpdate();
+                }
+            }
+
+            throttleRotationUpdate() {
+                if (this.rotationUpdateTimeout) {
+                    clearTimeout(this.rotationUpdateTimeout);
+                }
+                this.rotationUpdateTimeout = setTimeout(() => {
+                    this.recalculateEarthworks();
+                    this.rotationUpdateTimeout = null;
+                }, 300);
+            }
+
+            async calculateEarthworks() {
+                if (!this.terrainData) {
+                    this.showError('Please generate terrain data first');
+                    return;
+                }
+
+                try {
+                    this.clearMessages();
+                    const btn = document.getElementById('calculateEarthworksBtn');
+                    btn.disabled = true;
+                    btn.textContent = 'Calculating...';
+
+                    // Initialize platform center at terrain center
+                    this.currentPlatformCenter = { x: 0.5, y: 0.5 };
+
+                    // Get platform parameters
+                    const width = parseFloat(document.getElementById('platformWidth').value) || 15;
+                    const length = parseFloat(document.getElementById('platformLength').value) || 20;
+
+                    // Create platform coordinates (centered in terrain) with rotation
+                    const terrainWidth = this.terrainData.width_m;
+                    const terrainLength = this.terrainData.length_m;
+
+                    const platformCoords = this.calculateRotatedPlatformCoords(
+                        this.currentPlatformCenter, 
+                        width, 
+                        length, 
+                        terrainWidth, 
+                        terrainLength, 
+                        this.currentPlatformRotation
+                    );
+
+                    // Get FFL parameters
+                    const optimizeFfl = document.querySelector('input[name="fflMode"][value="optimize"]').checked;
+                    const manualFfl = optimizeFfl ? null :parseFloat(document.getElementById('manualFFL').value);
+
+                    console.log('[TerrainViewer] Calculating earthworks...', {
+                        platformCenter: this.currentPlatformCenter,
+                        platformCoords,
+                        optimizeFfl,
+                        manualFfl
+                    });
+
+                    const response = await fetch('/api/calculate-earthworks', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            terrain_data: this.terrainData,
+                            platform_coords: platformCoords,
+                            ffl: manualFfl,
+                            optimize_ffl: optimizeFfl
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.earthworksData = result;
+                        this.displayEarthworksResults(result);
+                        this.renderTerrainWithPlatform();
+                        this.showSuccess('Earthworks calculated successfully - hover over the platform to see it highlight, then click and drag to move it');
+                        document.getElementById('clearPlatformBtn').disabled = false;
+                        document.getElementById('togglePlatformMoveBtn').disabled = false;
+                    } else {
+                        this.showError(result.error || 'Failed to calculate earthworks');
+                    }
+
+                } catch (error) {
+                    this.showError(`Error: ${error.message}`);
+                    console.error('[TerrainViewer] Earthworks calculation error:', error);
+                } finally {
+                    const btn = document.getElementById('calculateEarthworksBtn');
+                    btn.disabled = false;
+                    btn.textContent = 'Calculate Earthworks';
+                }
+            }
+
+            displayEarthworksResults(result) {
+                document.getElementById('cutVolume').textContent = `${result.cut_volume_m3.toFixed(1)} m³`;
+                document.getElementById('fillVolume').textContent = `${result.fill_volume_m3.toFixed(1)} m³`;
+
+                const netValue = document.getElementById('netEarthwork');
+                const netAmount = result.net_earthwork_m3;
+                netValue.textContent = `${Math.abs(netAmount).toFixed(1)} m³ ${netAmount > 0 ? 'net cut' : 'net fill'}`;
+                netValue.className = `result-value ${netAmount > 0 ? 'positive' : 'negative'}`;
+
+                document.getElementById('platformArea').textContent = `${result.platform_area_m2.toFixed(1)} m²`;
+                document.getElementById('finalFFL').textContent = `${result.ffl.toFixed(2)} m`;
+
+                document.getElementById('earthworksResults').style.display = 'block';
+            }
+
+            renderTerrainWithPlatform() {
+                if (!this.terrainData || !this.earthworksData) return;
+
+                const data = this.terrainData;
+                const earthworks = this.earthworksData;
+                const canvas = document.getElementById('terrainCanvas');
+
+                // Create main terrain surface with earthworks modifications
+                const traces = [];
+
+                // Create modified elevation data incorporating cut/fill
+                const terrainMod = this.createModifiedTerrain(data.elevation_data, earthworks);
+                const modifiedElevation = terrainMod.elevation;
+                const cutFillMask = terrainMod.cutFillMask;
+
+                // Create terrain surface colors that preserve original colors for unchanged areas
+                let terrainColors = null;
+                if (cutFillMask) {
+                    // First, normalize the original elevation data to 0.3-0.7 range for terrain colors
+                    const minElev = Math.min(...data.elevation_data.flat());
+                    const maxElev = Math.max(...data.elevation_data.flat());
+                    const elevRange = maxElev - minElev;
+
+                    terrainColors = data.elevation_data.map((row, i) => 
+                        row.map((elevation, j) => {
+                            const cutFillValue = cutFillMask[i][j];
+
+                            // If no earthworks (value = 0), use original terrain elevation for coloring
+                            if (cutFillValue === 0) {
+                                // Map original elevation to middle range (0.3-0.7) for original terrain colors
+                                if (elevRange > 0) {
+                                    const normalizedElev = (elevation - minElev) / elevRange;
+return 0.3 + (normalizedElev * 0.4); // Range 0.3-0.7 for original terrain
+                                }
+                                return 0.5; // Default middle value
+                            }
+
+                            // For cut/fill areas, map to red/green spectrum
+                            if (cutFillValue > 0) {
+                                // Cut areas - map to red values (0.0 to 0.29)
+                                const intensity = Math.min(Math.abs(cutFillValue) / 4, 1); // Normalize to max 4m cut
+                                return 0.02 + (intensity * 0.27); // Range 0.02-0.29 for reds
+                            } else if (cutFillValue < 0) {
+                                // Fill areas - map to green values (0.71 to 1.0)
+                                const intensity = Math.min(Math.abs(cutFillValue) / 4, 1); // Normalize to max 4m fill
+                                return 0.71 + (intensity * 0.29); // Range 0.71-1.0 for greens
+                            }
+
+                            // Platform level areas (minimal cut/fill)
+                            return 0.5;
+                        })
+                    );
+                }
+
+                // Main terrain surface with original colors preserved and cut/fill highlighted
+                traces.push({
+                    type: 'surface',
+                    z: modifiedElevation,
+                    x: data.x_coords,
+                    y: data.y_coords,
+                    surfacecolor: terrainColors,
+                    colorscale: [
+                        // Warm spectrum for cuts (0.0 - 0.29) - muted oranges/browns
+                        [0, '#3d2914'],      // Deep brown (heavy cut)
+                        [0.1, '#5c3317'],    // Dark chocolate brown
+                        [0.2, '#8b4513'],    // Saddle brown  
+                        [0.29, '#cd853f'],   // Peru/sandy brown (light cut)
+
+                        // Original terrain colors (0.3 - 0.7)
+                        [0.3, '#0d1421'],    // Deep navy (lowest elevation)
+                        [0.37, '#1a2332'],   // Dark blue-grey
+                        [0.44, '#2d4a5a'],   // Medium blue-grey
+                        [0.51, '#547bf7'],   // EngineRoom blue
+                        [0.57, '#6287ff'],   // Bright blue
+                        [0.62, '#84a7f7'],   // Light blue
+                        [0.66, '#a3c4f3'],   // Very light blue
+                        [0.7, '#e8f2ff'],    // Almost white blue
+
+                        // Cool spectrum for fills (0.71 - 1.0) - deeper blues/teals
+                        [0.71, '#4a6fa5'],   // Steel blue (minimal fill)
+                        [0.8, '#2e5984'],    // Darker blue
+                        [0.9, '#1e3a5f'],    // Deep blue
+                        [1, '#0f1d2e']       // Very deep blue (heavy fill)
+                    ],
+                    opacity: 1.0,
+                    name: 'Terrain with Earthworks',
+                    showscale: true,
+                    colorbar: {
+                        title: 'Terrain & Earthworks',
+                        titlefont: { color: 'white', size: 12 },
+                        tickfont: { color: 'white', size: 10 },
+                        tickvals: [0.15, 0.5, 85],
+                        ticktext: ['Excavation', 'Natural Terrain', 'Fill Areas'],
+                        len: 0.8,
+                        thickness: 25,
+                        x: 1.02,
+                        bgcolor: 'rgba(0,0,0,0.5)',
+                        bordercolor: 'rgba(255,255,255,0.3)',
+                        borderwidth: 1
+                    },
+                    contours: {
+                        z: {
+                            show: true,
+                            usecolormap: false,
+                            color: 'rgba(255, 255, 255, 0.3)',
+                            width: 1,
+                            project: { z: true }
+                        }
+                    },
+                    lighting: {
+                        ambient: 0.9,
+                        diffuse: 0.5,
+                        specular: 0.02,
+                        roughness: 0.8,
+                        fresnel: 0.1
+                    }
+                });
+
+                // Base level
+                traces.push({
+                    type: 'surface',
+                    z: Array(data.elevation_data.length).fill(null).map(() => 
+                        Array(data.elevation_data[0].length).fill(data.base_level)
+                    ),
+                    x: data.x_coords,
+                    y: data.y_coords,
+                    colorscale: [[0, 'rgba(13, 20, 33, 0.8)'], [1, 'rgba(13, 20, 33, 0.8)']],
+                    showscale: false,
+                    opacity: 0.4,
+                    name: 'Base Level',
+                    showlegend: true
+                });
+
+                // Property boundary is hidden by default in earthworks view
+                // (Property boundary trace removed to keep terrain view clean)
+                // Add polygon overlays to the plot if available
+                if (data.polygon_overlays) {
+                    console.log('[TerrainViewer] Adding polygon overlays:', Object.keys(data.polygon_overlays));
+
+                    Object.entries(data.polygon_overlays).forEach(([key, overlay]) => {
+                        if (overlay.coordinates && overlay.coordinates.length > 0) {
+                            console.log(`[TerrainViewer] Adding ${key} overlay with ${overlay.coordinates.length} coordinates`);
+
+                            // Convert coordinates to x, y arrays for plotting
+                            const overlayX = [];
+                            const overlayY = [];
+
+                            overlay.coordinates.forEach(coord => {
+                                if (Array.isArray(coord) && coord.length >= 2) {
+                                    // Convert from [lng, lat] to projected coordinates
+                                    const projectedCoord = this.convertToProjectedCoords(coord[0], coord[1], data);
+                                    overlayX.push(projectedCoord.x);
+                                    overlayY.push(projectedCoord.y);
+                                }
+                            });
+
+                            // Close the polygon by adding the first point at the end
+                            if (overlayX.length > 0) {
+                                overlayX.push(overlayX[0]);
+                                overlayY.push(overlayY[0]);
+                            }
+
+                            // Determine line style and width based on overlay type
+                            let lineWidth = 8;
+                            let lineDash = 'solid';
+                            let zOffset = 0.5;
+
+                            if (key === 'site_boundary') {
+                                lineWidth = 10;
+                                zOffset = 0.8;
+                            } else if (key === 'buildable_area') {
+                                lineWidth = 6;
+                                lineDash = 'dash';
+                                zOffset = 0.6;
+                            } else if (key === 'structure_placement') {
+                                lineWidth = 8;
+                                lineDash = 'dot';
+                                zOffset = 1.0;
+                            }
+
+                            // Add to plot
+                            traces.push({
+                                type: 'scatter3d',
+                                x: overlayX,
+                                y: overlayY,
+                                z: Array(overlayX.length).fill(data.base_level + zOffset),
+                                mode: 'lines',
+                                line: { 
+                                    color: overlay.color || '#007cbf', 
+                                    width: lineWidth,
+                                    dash: lineDash
+                                },
+                                name: overlay.name || key,
+                                showlegend: true,
+                                opacity: 0.9
+                            });
+
+                            // Add area information to legend if available
+                            if (overlay.area_m2) {
+                                const lastTrace = traces[traces.length - 1];
+                                lastTrace.name += ` (${overlay.area_m2.toFixed(1)} m²)`;
+                            }
+                        }
+                    });
+
+                    // Log overlay summary
+                    const overlayTypes = Object.keys(data.polygon_overlays);
+                    console.log(`[TerrainViewer] Successfully added ${overlayTypes.length} polygon overlays: ${overlayTypes.join(', ')}`);
+                }
+
+                // Calculate appropriate scaling for terrain visualisation
+                const maxX = data.width_m || 50;
+                const maxY = data.length_m || 50;
+                const elevationRange = Math.max(...data.elevation_data.flat()) - Math.min(...data.elevation_data.flat());
+
+                // Use a reasonable elevation scale - typically 2-3x the elevation range for good visibility
+                const elevationScale = Math.max(elevationRange * 2.5, maxX * 0.3); // At least 30% of horizontal scale
+                const maxDimension = Math.max(maxX, maxY);
+
+                const layout = {
+                    scene: {
+                        aspectmode: 'manual',
+                        aspectratio: { 
+                            x: 1, 
+                            y: maxY / maxX, 
+                            z: elevationScale / maxDimension 
+                        },
+                        xaxis: { 
+                            title: 'Width (m)',
+                            titlefont: { color: 'white', size: 14 },
+                            tickformat: '.0f',
+                            tickfont: { color: 'white', size: 12 },
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.3)',
+                            gridwidth: 2,
+                            color: 'white',
+                            showbackground: true,
+                            backgroundcolor: 'rgba(13, 20, 33, 0.5)',
+                            range: [0, maxX]
+                        },
+                        yaxis: { 
+                            title: 'Length (m)',
+                            titlefont: { color: 'white', size: 14 },
+                            tickformat: '.0f',
+                            tickfont: { color: 'white', size: 12 },
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.3)',
+                            gridwidth: 2,
+                            color: 'white',
+                            showbackground: true,
+                            backgroundcolor: 'rgba(13, 20, 33, 0.5)',
+                            range: [0, maxY]
+                        },
+                        zaxis: { 
+                            title: 'Elevation (m)',
+                            titlefont: { color: 'white', size: 14 },
+                            tickformat: '.1f',
+                            tickfont: { color: 'white', size: 12 },
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.4)',
+                            gridwidth: 2,
+                            color: 'white',
+                            showbackground: true,
+                            backgroundcolor: 'rgba(13, 20, 33, 0.5)',
+                            range: [Math.min(...data.elevation_data.flat()) - 1, Math.max(...data.elevation_data.flat()) + 2]
+                        },
+                        camera: {
+                            eye: { x: 0, y: -2.0, z: 1.2 },
+                            center: { x: 0, y: 0, z: 0 },
+                            up: { x: 0, y: 0, z: 1 }
+                        }
+                    },
+                    margin: { l: 0, r: 100, b: 0, t: 50 },
+                    paper_bgcolor: '#0d1421',
+                    plot_bgcolor: '#0d1421',
+                    font: { color: 'white', family: 'Inter, sans-serif' }
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d'],
+                    displaylogo: false
+                };
+
+                Plotly.newPlot(canvas, traces, layout, config);
+                this.plot = canvas;
+            }
+
+            createModifiedTerrain(originalElevation, earthworksData) {
+                // Create a copy of the original elevation data
+                const modifiedElevation = originalElevation.map(row => row.slice());
+
+                if (!earthworksData.visualisation_data || !earthworksData.platform_local_coords) {
+                    return { elevation: modifiedElevation, cutFillMask: null };
+                }
+
+                const ffl = earthworksData.ffl;
+                const platformBounds = earthworksData.platform_local_coords;
+
+                // Get terrain dimensions
+                const rows = originalElevation.length;
+                const cols = originalElevation[0].length;
+                const terrainData = this.terrainData;
+
+                // Create cut/fill mask for color coding with more granular levels
+                const cutFillMask = Array(rows).fill(null).map(() => Array(cols).fill(0));
+
+                // Get coordinate ranges
+                const xCoords = terrainData.x_coords;
+                const yCoords = terrainData.y_coords;
+
+                if (!platformBounds || platformBounds.length < 3) {
+                    return { elevation: modifiedElevation, cutFillMask: cutFillMask };
+                }
+
+                // Create platform polygon bounds
+                const platformXCoords = platformBounds.map(p => p[0]);
+                const platformYCoords = platformBounds.map(p => p[1]);
+                const platformXMin = Math.min(...platformXCoords);
+                const platformXMax = Math.max(...platformXCoords);
+                const platformYMin = Math.min(...platformYCoords);
+                const platformYMax = Math.max(...platformYCoords);
+
+                // Apply earthworks modifications with engineering slopes
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const x = xCoords[row][col];
+                        const y = yCoords[row][col];
+                        const originalZ = originalElevation[row][col];
+
+                        // Check if point is within or near platform
+                        const distanceToPlatform = this.distanceToPolygon([x, y], platformBounds);
+                        const isInsidePlatform = this.pointInPolygon([x, y], platformBounds);
+
+                        if (isInsidePlatform) {
+                            // Inside platform - set to FFL
+                            const cutFillDepth = originalZ - ffl;
+                            modifiedElevation[row][col] = ffl;
+
+                            // Set color coding based on cut/fill amount (only for significant changes)
+                            if (Math.abs(cutFillDepth) > 0.1) { // Only mark as earthworks if change > 10cm
+                                if (cutFillDepth > 0) {
+                                    // Cut required
+                                    cutFillMask[row][col] = cutFillDepth; // Positive for cut
+                                } else {
+                                    // Fill required  
+                                    cutFillMask[row][col] = cutFillDepth; // Negative for fill
+                                }
+                            } else {
+                                // Minimal change - keep as original terrain
+                                cutFillMask[row][col] = 0;
+                            }
+
+                        } else if (distanceToPlatform <= 5.0) {
+                            // Transition zone - apply 3:1 engineering slopes
+                            const transitionFactor = Math.max(0, 1 - (distanceToPlatform / 5.0));
+
+                            if (transitionFactor > 0.1) {
+                                // Calculate what the elevation should be at platform edge
+                                const platformEdgeElevation = this.getClosestPlatformElevation([x, y], platformBounds, ffl);
+                                const elevationDiff = originalZ - platformEdgeElevation;
+
+                                // Apply 3:1 slope (33% grade) - rise over run
+                                const maxSlope = distanceToPlatform / 3.0; // 3:1 slope ratio
+                                const slopeAdjustment = Math.min(Math.abs(elevationDiff), maxSlope) * Math.sign(elevationDiff);
+
+                                const targetElevation = platformEdgeElevation + slopeAdjustment;
+                                const blendedElevation = originalZ + transitionFactor * (targetElevation - originalZ);
+
+                                modifiedElevation[row][col] = blendedElevation;
+
+                                // Color code transition areas (only if significant change)
+                                const cutFillDepth = originalZ - blendedElevation;
+                                if (Math.abs(cutFillDepth) > 0.2) { // Only mark significant transitions
+                                    cutFillMask[row][col] = cutFillDepth; // Use actual depth for coloring
+                                } else {
+                                    cutFillMask[row][col] = 0; // Keep as original terrain
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return { elevation: modifiedElevation, cutFillMask: cutFillMask };
+            }
+
+            getClosestPlatformElevation(point, platformBounds, ffl) {
+                // For simplicity, return FFL since platform is flat
+                // In a more sophisticated implementation, this could interpolate 
+                // elevation along the platform edge
+                return ffl;
+            }
+
+            pointInPolygon(point, polygon) {
+                const [x, y] = point;
+                let inside = false;
+
+                for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                    const [xi, yi] = polygon[i];
+                    const [xj, yj] = polygon[j];
+
+                    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+                        inside = !inside;
+                    }
+                }
+
+                return inside;
+            }
+
+            distanceToPolygon(point, polygon) {
+                const [px, py] = point;
+                let minDistance = Infinity;
+
+                // Check if point is inside polygon first
+                if (this.pointInPolygon(point, polygon)) {
+                    return 0;
+                }
+
+                // Calculate distance to each edge
+                for (let i = 0; i < polygon.length; i++) {
+                    const [x1, y1] = polygon[i];
+                    const [x2, y2] = polygon[(i + 1) % polygon.length];
+
+                    const distance = this.distancePointToLineSegment([px, py], [x1, y1], [x2, y2]);
+                    minDistance = Math.min(minDistance, distance);
+                }
+
+                return minDistance;
+            }
+
+            distancePointToLineSegment(point, lineStart, lineEnd) {
+                const [px, py] = point;
+                const [x1, y1] = lineStart;
+                const [x2, y2] = lineEnd;
+
+                const A = px - x1;
+                const B = py - y1;
+                const C = x2 - x1;
+                const D = y2 - y1;
+
+                const dot = A * C + B * D;
+                const lenSq = C * C + D * D;
+
+                if (lenSq === 0) {
+                    return Math.sqrt(A * A + B * B);
+                }
+
+                let param = dot / lenSq;
+                param = Math.max(0, Math.min(1, param));
+
+                const xx = x1 + param * C;
+                const yy = y1 + param * D;
+
+                const dx = px - xx;
+                const dy = py - yy;
+
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            calculateRotatedPlatformCoords(center, width, length, terrainWidth, terrainLength, rotation) {
+                // Convert rotation to radians
+                const rotationRad = (rotation * Math.PI) / 180;
+
+                // Calculate half dimensions in relative coordinates
+                const halfWidth = width / (2 * terrainWidth);
+                const halfLength = length / (2 * terrainLength);
+
+                // Define the four corners of the rectangle relative to center (before rotation)
+                const corners = [
+                    { x: -halfWidth, y: -halfLength }, // Bottom-left
+                    { x: halfWidth, y: -halfLength },  // Bottom-right
+                    { x: halfWidth, y: halfLength },   // Top-right
+                    { x: -halfWidth, y: halfLength }   // Top-left
+                ];
+
+                // Rotate each corner around the center and convert to absolute coordinates
+                const rotatedCoords = corners.map(corner => {
+                    // Apply rotation matrix
+                    const rotatedX = corner.x * Math.cos(rotationRad) - corner.y * Math.sin(rotationRad);
+                    const rotatedY = corner.x * Math.sin(rotationRad) + corner.y * Math.cos(rotationRad);
+
+                    // Translate to actual position
+                    return {
+                        x: center.x + rotatedX,
+                        y: center.y + rotatedY
+                    };
+                });
+
+                console.log('[TerrainViewer] Calculated rotated platform coords:', {
+                    center,
+                    rotation,
+                    dimensions: { width, length },
+                    coords: rotatedCoords
+                });
+
+                return rotatedCoords;
+            }
+
+
+
+            clearPlatform() {
+                this.earthworksData = null;
+                this.platformMovementEnabled = false;
+
+                document.getElementById('earthworksResults').style.display = 'none';
+                document.getElementById('clearPlatformBtn').disabled = true;
+                document.getElementById('togglePlatformMoveBtn').disabled = true;
+
+                // Reset toggle button appearance
+                const toggleBtn = document.getElementById('togglePlatformMoveBtn');
+                toggleBtn.textContent = '🔒 Platform Movement: OFF';
+                toggleBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+
+                this.renderTerrain(); // Re-render without platform
+                this.showSuccess('Platform cleared');
+            }
+
+            toggleLayer(layerType, visible) {
+                if (!this.plot) {
+                    console.warn(`[TerrainViewer] No plot available for ${layerType} layer toggle`);
+                    return;
+                }
+
+                try {
+                    const currentData = this.plot.data;
+                    let traceIndices = [];
+
+                    // Find relevant traces based on layer type with more comprehensive matching
+                    switch (layerType) {
+                        case 'terrain':
+                            traceIndices = currentData.map((trace, index) => {
+                                if (!trace.name) return -1;
+                                const name = trace.name.toLowerCase();
+                                return (name.includes('terrain') && !name.includes('base')) ? index : -1;
+                            }).filter(index => index !== -1);
+                            break;
+                        case 'boundary':
+                            traceIndices = currentData.map((trace, index) => {
+                                if (!trace.name) return -1;
+                                const name = trace.name.toLowerCase();
+                                return (name.includes('property boundary') || name.includes('site boundary')) ? index : -1;
+                            }).filter(index => index !== -1);
+                            break;
+                        case 'buildable':
+                            traceIndices = currentData.map((trace, index) => {
+                                if (!trace.name) return -1;
+                                const name = trace.name.toLowerCase();
+                                return (name.includes('buildable') || name.includes('buildable area') || name.includes('buildable_area')) ? index : -1;
+                            }).filter(index => index !== -1);
+                            break;
+                        case 'structure':
+                            traceIndices = currentData.map((trace, index) => {
+                                if (!trace.name) return -1;
+                                const name = trace.name.toLowerCase();
+                                return (name.includes('structure') || name.includes('structure_placement')) ? index : -1;
+                            }).filter(index => index !== -1);
+                            break;
+                        case 'platform':
+                            traceIndices = currentData.map((trace, index) => {
+                                if (!trace.name) return -1;
+                                const name = trace.name.toLowerCase();
+                                return (name.includes('platform') || name.includes('building platform')) ? index : -1;
+                            }).filter(index => index !== -1);
+                            break;
+                    }
+
+                    // Update visibility for found traces
+                    if (traceIndices.length > 0) {
+                        // Use proper Plotly visibility values - true for visible, false for hidden
+                        const update = { visible: visible };
+                        Plotly.restyle(this.plot, update, traceIndices);
+                        console.log(`[TerrainViewer] Toggled ${layerType} layer: ${visible ? 'visible' : 'hidden'} (${traceIndices.length} traces affected)`);
+                        
+                        // Force plot refresh
+                        Plotly.redraw(this.plot);
+                    } else {
+                        console.warn(`[TerrainViewer] No traces found for ${layerType} layer - available traces:`, currentData.map(t => t.name));
+                        
+                        // Debug: log all trace names to help identify the issue
+                        console.log(`[TerrainViewer] All available traces for ${layerType}:`, 
+                            currentData.map((trace, index) => `${index}: ${trace.name || 'unnamed'}`));
+                    }
+
+                } catch (error) {
+                    console.error(`[TerrainViewer] Error toggling ${layerType} layer:`, error);
+                }
+            }
+
+            toggleContours(visible) {
+                if (!this.plot) {
+                    console.warn('[TerrainViewer] No plot available for contour toggle');
+                    return;
+                }
+
+                try {
+                    const currentData = this.plot.data;
+                    const terrainTraceIndices = currentData.map((trace, index) => {
+                        if (!trace.name || trace.type !== 'surface') return -1;
+                        const name = trace.name.toLowerCase();
+                        return (name.includes('terrain') && !name.includes('base')) ? index : -1;
+                    }).filter(index => index !== -1);
+
+                    if (terrainTraceIndices.length > 0) {
+                        const update = {
+                            'contours.z.show': visible
+                        };
+                        Plotly.restyle(this.plot, update, terrainTraceIndices);
+                        console.log(`[TerrainViewer] Contours ${visible ? 'enabled' : 'disabled'} for ${terrainTraceIndices.length} terrain surfaces`);
+                        
+                        // Force plot refresh  
+                        Plotly.redraw(this.plot);
+                    } else {
+                        console.warn(`[TerrainViewer] No terrain surface traces found for contour toggle`);
+                        console.log(`[TerrainViewer] Available surface traces:`, 
+                            currentData.filter(t => t.type === 'surface').map((t, i) => `${i}: ${t.name}`));
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error toggling contours:', error);
+                }
+            }
+
+            updateTerrainOpacity(opacity) {
+                if (!this.plot) {
+                    console.warn('[TerrainViewer] No plot available for opacity update');
+                    return;
+                }
+
+                try {
+                    const opacityValue = parseFloat(opacity);
+                    document.getElementById('terrainOpacityValue').textContent = opacityValue.toFixed(1);
+
+                    const currentData = this.plot.data;
+                    const terrainTraceIndices = currentData.map((trace, index) => {
+                        if (!trace.name || trace.type !== 'surface') return -1;
+                        const name = trace.name.toLowerCase();
+                        return name.includes('terrain') && !name.includes('base') ? index : -1;
+                    }).filter(index => index !== -1);
+
+                    if (terrainTraceIndices.length > 0) {
+                        const update = { opacity: opacityValue };
+                        Plotly.restyle(this.plot, update, terrainTraceIndices);
+                        console.log(`[TerrainViewer] Updated terrain opacity to ${opacityValue} for ${terrainTraceIndices.length} terrain surfaces`);
+                        
+                        // Force plot refresh
+                        Plotly.redraw(this.plot);
+                    } else {
+                        console.warn(`[TerrainViewer] No terrain surface traces found for opacity update - available surfaces:`, 
+                            currentData.filter(t => t.type === 'surface').map(t => t.name));
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error updating terrain opacity:', error);
+                }
+            }
+
+            updateVerticalScale(scale) {
+                if (!this.plot || !this.terrainData) return;
+
+                try {
+                    const scaleValue = parseFloat(scale);
+                    document.getElementById('verticalScaleValue').textContent = scaleValue.toFixed(1) + 'x';
+
+                    const data = this.terrainData;
+                    const maxX = data.width_m || 50;
+                    const maxY = data.length_m || 50;
+                    const elevationRange = Math.max(...data.elevation_data.flat()) - Math.min(...data.elevation_data.flat());
+                    const elevationScale = Math.max(elevationRange * scaleValue, maxX * 0.3);
+                    const maxDimension = Math.max(maxX, maxY);
+
+                    const update = {
+                        'scene.aspectratio.z': elevationScale / maxDimension
+                    };
+
+                    Plotly.relayout(this.plot, update);
+                    console.log(`[TerrainViewer] Updated vertical scale to ${scaleValue}x`);
+                } catch (error) {
+                    console.error('[TerrainViewer] Error updating vertical scale:', error);
+                }
+            }
+
+            updateColorScheme(scheme) {
+                if (!this.plot) return;
+
+                try {
+                    const colorScales = {
+                        terrain: [
+                            [0, '#0d1421'],      // Deep navy
+                            [0.15, '#1a2332'],   // Dark blue-grey
+                            [0.3, '#2d4a5a'],    // Medium blue-grey
+                            [0.45, '#547bf7'],   // EngineRoom blue
+                            [0.6, '#6287ff'],    // Bright blue
+                            [0.75, '#84a7f7'],   // Light blue
+                            [0.85, '#a3c4f3'],   // Very light blue
+                            [0.95, '#e8f2ff'],   // Almost white blue
+                            [1, '#ffffff']       // Pure white
+                        ],
+                        elevation: [
+                            [0, '#1a472a'],     // Dark green
+                            [0.2, '#2d7c47'],   // Forest green
+                            [0.4, '#48cc6c'],   // Green
+                            [0.6, '#ffd23f'],   // Yellow
+                            [0.8, '#ff8c42'],   // Orange
+                            [1, '#8b4513']      // Brown
+                        ],
+                        viridis: 'Viridis',
+                        plasma: 'Plasma',
+                        grayscale: [[0, '#000000'], [1, '#ffffff']]
+                    };
+
+                    const currentData = this.plot.data;
+                    const terrainTraceIndices = currentData.map((trace, index) => {
+                        if (!trace.name || trace.type !== 'surface') return -1;
+                        const name = trace.name.toLowerCase();
+                        return name.includes('terrain') && !name.includes('base') ? index : -1;
+                    }).filter(index => index !== -1);
+
+                    if (terrainTraceIndices.length > 0) {
+                        const update = { colorscale: colorScales[scheme] };
+                        Plotly.restyle(this.plot, update, terrainTraceIndices);
+                        console.log(`[TerrainViewer] Updated color scheme to ${scheme} for ${terrainTraceIndices.length} terrain surfaces`);
+                        
+                        // Force plot refresh
+                        Plotly.redraw(this.plot);
+                    } else {
+                        console.warn(`[TerrainViewer] No terrain surface traces found for color scheme update`);
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error updating color scheme:', error);
+                }
+            }
+
+            toggleGrid(visible) {
+                if (!this.plot) {
+                    console.warn('[TerrainViewer] No plot available for grid toggle');
+                    return;
+                }
+
+                try {
+                    const update = {
+                        'scene.xaxis.showgrid': visible,
+                        'scene.yaxis.showgrid': visible,
+                        'scene.zaxis.showgrid': visible
+                    };
+
+                    Plotly.relayout(this.plot, update);
+                    console.log(`[TerrainViewer] Grid ${visible ? 'enabled' : 'disabled'}`);
+                } catch (error) {
+                    console.error('[TerrainViewer] Error toggling grid:', error);
+                }
+            }
+
+            toggleAutoRotate(enabled) {
+                if (!this.plot) return;
+
+                try {
+                    if (enabled) {
+                        this.autoRotateInterval = setInterval(() => {
+                            if (this.plot && this.plot.layout && this.plot.layout.scene && this.plot.layout.scene.camera) {
+                                const camera = this.plot.layout.scene.camera;
+                                const eye = camera.eye;
+                                
+                                // Calculate new position for slow rotation
+                                const angle = Date.now() * 0.0005; // Slow rotation
+                                const radius = Math.sqrt(eye.x * eye.x + eye.y * eye.y);
+                                
+                                const newEye = {
+                                    x: radius * Math.cos(angle),
+                                    y: radius * Math.sin(angle),
+                                    z: eye.z
+                                };
+
+                                Plotly.relayout(this.plot, {
+                                    'scene.camera.eye': newEye
+                                });
+                            }
+                        }, 100);
+                        console.log('[TerrainViewer] Auto-rotate enabled');
+                    } else {
+                        if (this.autoRotateInterval) {
+                            clearInterval(this.autoRotateInterval);
+                            this.autoRotateInterval = null;
+                        }
+                        console.log('[TerrainViewer] Auto-rotate disabled');
+                    }
+                } catch (error) {
+                    console.error('[TerrainViewer] Error toggling auto-rotate:', error);
+                }
+            }
+
+            info(message, data = {}) {
+                console.info(`[TerrainViewer] ${message}`, data);
+            }
+
+            warn(message, data = {}) {
+                console.warn(`[TerrainViewer] ${message}`, data);
+            }
+        }
+
+        // Function to navigate to engineering flow step
+        function navigateToStep(stepNumber, projectId) {
+            // Get project ID from multiple sources
+            if (!projectId) {
+                // Try to get from template variable
+                projectId = {{ project.id if project else 'null' }};
+
+                // If still not found, try URL parameters
+                if (!projectId || projectId === null) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    projectId = urlParams.get('project_id') || urlParams.get('project');
+                }
+            }
+
+            // Clean up malformed project IDs (remove any extra parameters)
+            if (projectId && typeof projectId === 'string' && projectId.includes('?')) {
+                projectId = projectId.split('?')[0];
+                console.log('[TerrainViewer] Cleaned malformed project ID for navigation:', projectId);
+            }
+
+            // Validate project ID
+            if (projectId) {
+                projectId = String(projectId).trim();
+                if (!/^\d+$/.test(projectId)) {
+                    console.error('[TerrainViewer] Invalid project ID format:', projectId);
+                    return;
+                }
+            }
+
+            console.log('[TerrainViewer] Navigating to step', stepNumber, 'with project ID:', projectId);
+
+            const routes = {
+                1: `/site-inspector?project_id=${projectId}`,
+                2: `/terrain-viewer?project_id=${projectId}`,
+                3: `/structure-designer?project_id=${projectId}`,
+                4: `/structural-analyser?project_id=${projectId}`
+            };
+
+            if (routes[stepNumber] && projectId) {
+                window.location.href = routes[stepNumber];
+            } else {
+                console.error('[TerrainViewer] No valid project ID available for navigation. ProjectId:', projectId);
+            }
+        }
+
+        // Initialize terrain viewer
+        document.addEventListener('DOMContentLoaded', () => {
+            const terrainViewer = new TerrainViewer();
+
+            // Set authenticated class on body for ADAM widget
+            document.body.classList.add('authenticated');
+
+            // Initialize ADAM widget if not already initialized
+            if (typeof ADAMChatWidget !== 'undefined' && !window.adamChat) {
+                try {
+                    window.adamChat = new ADAMChatWidget();
+                    console.log('ADAM chat widget initialized successfully on terrain viewer page');
+                } catch (error) {
+                    console.error('Failed to initialize ADAM chat widget on terrain viewer page:', error);
+                }
+            }
+        });
+    </script>
+
+    <!-- ADAM Chat Widget -->
+    <script src="{{ url_for('static', filename='js/adam-chat-widget.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+172.31.100.194 - - [26/Jul/2025 12:33:59] "GET /static/js/snapshot-manager.js HTTP/1.1" 304 -
+172.31.100.194 - - [26/Jul/2025 12:33:59] "GET /static/js/timezone-detector.js HTTP/1.1" 304 -
+172.31.100.194 - - [26/Jul/2025 12:33:59] "GET /static/js/core.js HTTP/1.1" 304 -
+172.31.100.194 - - [26/Jul/2025 12:33:59] "GET /static/js/adam-chat-widget.js HTTP/1.1" 200 -
+172.31.100.194 - - [26/Jul/2025 12:33:59] "GET /static/app.js HTTP/1.1" 304 -
+2025-07-26 12:34:00,446 - engineroom - INFO - [logger] Getting project snapshot for project 18, type: None
+2025-07-26 12:34:00,447 - engineroom - INFO - [logger] Found 2 snapshots for project 18
+2025-07-26 12:34:00,448 - engineroom - INFO - [logger] Snapshot result: {'id': 28, 'project_id': 18, 'user_id': 4, 'snapshot_type': 'buildable_area', 'snapshot_data': '{"buildable_coords":[[-41.2806626577539,174.73471834059478],[-41.280541989252654,174.73513519348742],[-41.280451396527646,174.73508679090935],[-41.28057101651367,174.73466983208323]],"buildable_area_m2":407.6091831477709,"site_area_m2":644.7722668192704,"coverage_ratio":0.6321754270830382,"front_setback":5.5,"rear_setback":3.5,"side_setback":1.5,"selected_edges":{"front":{"index":2,"start":[174.73520318818737,-41.28053677292653],"end":[174.73514147062696,-41.2804212594077],"midpoint":[174.73517232940716,-41.28047901616712]},"back":{"index":0,"start":[174.73462413751253,-41.280569675511906],"end":[174.73468597297904,-41.280686493881866],"midpoint":[174.73465505524578,-41.280628084696886]}},"calculation_method":"manual_edge_classification","terrain_bounds":{"bounds":{"north":-41.28015242456904,"south":-41.280485374716925,"east":174.73562828333837,"west":174.7338238547881},"center":[174.73472606906017,-41.28063730501025],"zoom":18.9842537899035,"width":0.001804428550258308,"height":0.00033295014788592425,"timestamp":"2025-07-26T02:49:57.727Z"},"site_coords":[[174.73462413751253,-41.280569675511906],[174.73468597297904,-41.280686493881866],[174.73520318818737,-41.28053677292653],[174.73514147062696,-41.2804212594077],[174.73462413751253,-41.280569675511906]],"site_area_calculated":645.3403695698871,"timestamp":"2025-07-26T02:49:57.727Z"}', 'description': '', 'created_at': '2025-07-26 02:49:57', 'updated_at': '2025-07-26 02:49:57.771192', 'username': 'tomo_hart'}
+172.31.100.194 - - [26/Jul/2025 12:34:00] "GET /api/project/18/snapshot HTTP/1.1" 200 -
+2025-07-26 12:34:00,451 - engineroom - INFO - [logger] User timezone set to: Australia/Sydney
+172.31.100.194 - - [26/Jul/2025 12:34:00] "POST /api/set-timezone HTTP/1.1" 200 -
+2025-07-26 12:34:00,458 - engineroom - INFO - [logger] Getting conversations for user ID: 4
+172.31.100.194 - - [26/Jul/2025 12:34:00] "GET /conversations HTTP/1.1" 200 -
+2025-07-26 12:34:00,460 - engineroom - INFO - [logger] Retrieved 0 conversations
+172.31.100.194 - - [26/Jul/2025 12:34:00] "GET /api/conversations?limit=1&agent=ADAM HTTP/1.1" 200 -
+ * Detected change in '/home/runner/workspace/main.py', reloading
+ * Restarting with stat
+  File "/home/runner/workspace/main.py", line 40
+    main()n()
+          ^
+SyntaxError: invalid syntax

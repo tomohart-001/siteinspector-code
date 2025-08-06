@@ -1,0 +1,2913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Inspector - EngineRoom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- External JavaScript Dependencies -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js'></script>
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
+    <!-- Core JavaScript Modules -->
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/adam-chat-widget.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/opencv-processor.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/floorplan-manager.js') }}"></script>
+
+    <!-- Site Inspector Modular System -->
+    <script src="{{ url_for('static', filename='js/site-inspector/site-boundary-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/site-inspector/property-setbacks-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/site-inspector/map-features-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/site-inspector/ui-panel-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/site-inspector/site-inspector-core.js') }}"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+        }
+
+        #inspectorMap { 
+            position: absolute; 
+            top: 116px; 
+            bottom: 0; 
+            left: 0;
+            width: 100%; 
+            z-index: 1;
+        }
+
+        /* Header Styles - Light Mode Consistent */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 16px 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 2000;
+            height: 60px;
+        }
+
+        /* Engineering Flow Progress */
+        .engineering-flow-progress {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 12px 24px;
+            z-index: 1999;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .project-info-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 16px;
+            margin-right: 120px;
+            flex-shrink: 0;
+            max-width: 240px;
+        }
+
+        .project-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 2px;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 240px;
+        }
+
+        .project-address {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 400;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 240px;
+        }
+
+        .flow-steps-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .step-indicator {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .flow-step.active .step-indicator {
+            background: #547bf7;
+            color: white;
+            box-shadow: 0 0 0 4px rgba(84, 123, 247, 0.2);
+        }
+
+        .flow-step.completed .step-indicator {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-number {
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+        }
+
+        .step-check {
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .flow-step.completed .step-number {
+            display: none;
+        }
+
+        .flow-step.completed .step-check {
+            display: block;
+        }
+
+        .step-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a202c;
+            white-space: nowrap;
+        }
+
+        .step-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+
+        .flow-step.active .step-title {
+            color: #547bf7;
+        }
+
+        .flow-step.completed .step-title {
+            color: #10b981;
+        }
+
+        .flow-connector {
+            width: 60px;
+            height: 2px;
+            background: #e2e8f0;
+            margin: 0 16px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step.completed + .flow-connector {
+            background: #10b981;
+        }
+
+        .flow-step.active + .flow-connector {
+            background: linear-gradient(90deg, #10b981 0%, #e2e8f0 50%, #e2e8f0 100%);
+        }
+
+        /* Clickable flow steps */
+        .flow-step.clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step.clickable:hover {
+            transform: translateY(-2px);
+        }
+
+        .flow-step.clickable:hover .step-indicator {
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        .flow-step.clickable:hover .step-title {
+            color: #547bf7;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-back-btn {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1a202c;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-back-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #1a202c;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-title {
+            color: #1a202c;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            color: #4a5568;
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin: 2px 0 0 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-cta-btn {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .header-cta-btn:hover {
+            background: linear-gradient(135deg, #6287ff 0%, #5575e8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(84, 123, 247, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Map Controls Container */
+        .map-controls-container {
+            position: absolute;
+            top: 126px;
+            left: 64px; /* 40px (cog button) + 16px (gap) + 8px (margin) = 64px */
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .map-controls-container.shifted {
+            left: 396px; /* 380px (panel width) + 16px (gap) = 396px */
+        }
+
+        /* Right Edge Controls */
+        .right-edge-controls {
+            position: absolute;
+            top: 126px;
+            right: 8px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .map-control-button {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #333333;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        .map-control-button:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #007cbf;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 124, 191, 0.2);
+        }
+
+        .map-control-button.active {
+            background: #007cbf;
+            color: white;
+            border-color: #005a8a;
+            box-shadow: 0 8px 24px rgba(0, 124, 191, 0.4);
+        }
+
+        /* Basemap Control */
+        .basemap-control {
+            position: relative;
+            z-index: 1100;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            height: 40px;
+            width: 120px;
+            display: flex;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .style-selector {
+            width: 100%;
+            height: 40px;
+            padding: 0 24px 0 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #333333;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" width="12" height="6"><path d="M0 0l6 6 6-6z" fill="%23333"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 8px top 50%;
+            background-size: 10px auto;
+        }
+
+        .style-selector:focus {
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .style-selector:hover {
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        /* 3D Buildings Control */
+        .buildings-control-expandable {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            z-index: 1100;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: 40px;
+            width: 120px;
+            transition: height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+        }
+
+        .buildings-control-expandable.expanded {
+            height: 88px;
+        }
+
+        .buildings-toggle-btn {
+            width: 100%;
+            height: 40px;
+            margin: 0;
+            padding: 0 8px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            color: #333333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            z-index: 1101;
+        }
+
+        .buildings-control-expandable.expanded .buildings-toggle-btn {
+            border-radius: 8px 8px 0 0;
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .buildings-toggle-btn:hover {
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .buildings-toggle-btn.active {
+            background: rgba(84, 123, 247, 0.2);
+            color: #547bf7;
+        }
+
+        .buildings-slider-content {
+            padding: 12px 8px 16px 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.1s;
+            pointer-events: none;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .buildings-control-expandable.expanded .buildings-slider-content {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .buildings-slider-content label {
+            font-size: 11px;
+            color: #333;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .buildings-slider-content input[type="range"] {
+            width: 80px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .buildings-slider-content input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #547bf7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .buildings-slider-content input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #547bf7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .buildings-slider-content span {
+            display: none;
+        }
+
+        /* Site Inspector Panel */
+        .inspector-panel {
+            position: fixed;
+            top: 116px;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            left: 8px;
+            top: 126px;
+        }
+
+        .inspector-panel.expanded {
+            width: 380px;
+            height: calc(100vh - 116px);
+            border-radius: 0;
+            border-right: 1px solid rgba(0, 0, 0, 0.08);
+            border-left: none;
+            border-top: none;
+            border-bottom: none;
+            left: 0;
+            top: 116px;
+            cursor: default;
+        }
+
+        .panel-header {
+            display: none;
+        }
+
+        .inspector-panel.expanded .panel-header {
+            display: flex;
+        }
+
+        .panel-toggle-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #333333;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .panel-toggle-btn:hover {
+            background: rgba(0, 124, 191, 0.1);
+            color: #007cbf;
+        }
+
+        .inspector-panel.expanded .panel-toggle-btn {
+            display: none;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 16px 24px 0 24px;
+            flex-shrink: 0;
+        }
+
+        .panel-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666666;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .panel-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #007cbf;
+        }
+
+        .panel-content {
+            flex: 1;
+            opacity: 0;
+            overflow-y: auto;
+            padding: 16px 24px 24px 24px;
+            transition: opacity 0.3s ease 0.1s;
+            display: none;
+        }
+
+        .inspector-panel.expanded .panel-content {
+            opacity: 1;
+            display: block;
+        }
+
+        /* Info sections */
+        .info-section {
+            margin-bottom: 24px;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            align-items: center;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #666666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        /* Boundary controls */
+        .boundary-controls {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .boundary-controls.collapsed {
+            padding: 12px 20px;
+        }
+
+        .boundary-controls.collapsed .info-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .boundary-controls.collapsed .info-title:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        .boundary-controls.collapsed .setbacks-applied-check {
+            color: #28a745;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .boundary-controls.collapsed .boundary-content {
+            display: none;
+        }
+
+        .boundary-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .boundary-option {
+            background: #ffffff;
+            border: 2px solid rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-align: center;
+            color: #333333;
+        }
+
+        .boundary-option:hover {
+            border-color: #007cbf;
+            background: #f8f9fa;
+        }
+
+        .boundary-option.selected {
+            background: #007cbf;
+            color: white;
+            border-color: #005a8a;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #28a745 0%, #20923a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:hover {
+            background: linear-gradient(135deg, #34ce57 0%, #28a745 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+        }
+
+        .action-button:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .setback-button {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .setback-button:hover {
+            background: linear-gradient(135deg, #6287ff 0%, #5575e8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(84, 123, 247, 0.3);
+        }
+
+        .setback-button:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Edge Selection Styles */
+        .edge-selection-btn {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.2s ease;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edge-selection-btn:hover {
+            background: linear-gradient(135deg, #6287ff 0%, #5575e8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(84, 123, 247, 0.3);
+        }
+
+        .edge-selection-btn.active {
+            background: linear-gradient(135deg, #28a745 0%, #20923a 100%);
+        }
+
+        .edge-selection-btn.active:hover {
+            background: linear-gradient(135deg, #34ce57 0%, #28a745 100%);
+        }
+
+        .edge-selection-btn:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .edge-status {
+            padding: 8px 12px;
+            background: #d4edda;
+            border: ```text
+1px solid #c3e6cb;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .selected-edges-display {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        padding: 12px;
+        }
+
+        .edge-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+            font-size: 13px;
+        }
+
+        
+        .edge-label {
+            font-weight: 500;
+            color: #333333;
+        }
+
+        .edge-value {
+            font-weight: 600;
+            color: #333333;
+        }
+
+        /* Setback Input Styles */
+        .setback-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 12px;
+            margin: 20px 0;
+        }
+
+        .setback-inputs .input-group:nth-child(3) {
+            grid-column: 1 / -1;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 8px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .setback-input {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 13px;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+
+        .setback-input:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 2px rgba(84, 123, 247, 0.15);        }
+
+        /* Edge highlighting styles */
+        .polygon-edge-highlight {
+            stroke: #007cbf !important;
+            stroke-width: 3 !important;
+            stroke-opacity: 0.6 !important;
+            transition: all 0.2s ease !important;
+            cursor: pointer !important;
+        }
+
+        .polygon-edge-highlight:hover {
+            stroke: #0096d6 !important;
+            stroke-width: 6 !important;
+            stroke-opacity: 1 !important;
+        }
+
+        .polygon-edge-selected-front {
+            stroke: #28a745 !important;
+            stroke-width: 6 !important;
+            stroke-opacity: 1 !important;
+        }
+
+        .polygon-edge-selected-back {
+            stroke: #dc3545 !important;
+            stroke-width: 6 !important;
+            stroke-opacity: 1 !important;
+        }
+
+        /* Persistent selected edge styles */
+        .edge-selected-persistent {
+            stroke-width: 6 !important;
+            stroke-opacity: 1 !important;
+        }
+
+        .edge-front-selected {
+            stroke: #28a745 !important;
+        }
+
+        .edge-back-selected {
+            stroke: #dc3545 !important;
+        }
+
+        /* Setback visualization styles */
+        .setback-line {
+            stroke: #ffc107;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            stroke-opacity: 0.8;
+            fill: none;
+        }
+
+        .setback-fill {
+            fill: #ffc107;
+            fill-opacity: 0.15;
+            stroke: #ffc107;
+            stroke-width: 1;
+            stroke-opacity: 0.4;
+        }
+
+        /* Floor plan upload */
+        .floorplan-upload {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .floorplan-upload.collapsed {
+            padding: 12px 20px;
+        }
+
+        .floorplan-upload.collapsed .info-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .floorplan-upload.collapsed .info-title:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        .floorplan-upload.collapsed .floorplan-applied-check {
+            color: #ffc107;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .floorplan-upload.collapsed .floorplan-content {
+            display: none;
+        }
+
+        .info-section.collapsed {
+            padding: 12px 20px;
+        }
+
+        .info-section.collapsed .info-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .info-section.collapsed .info-title:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        .info-section.collapsed .gradient-applied-check {
+            color: #17a2b8;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .info-section.collapsed .gradient-content {
+            display: none;
+        }
+
+        .upload-button {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #333333;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 12px;
+            transition: all 0.2s ease;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-button:hover {
+            background: linear-gradient(135deg, #ffcd39 0%, #ffc107 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 193, 7, 0.3);
+        }
+
+        /* Site info expandable */
+        .site-info-expandable-container {
+            position: relative;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .site-info-expandable {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            height: 40px;
+            display: flex;
+            align-items: flex-start;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            overflow: hidden;
+            width: 40px;
+            flex-direction: column;
+        }
+
+        .site-info-expandable.expanded {
+            width: 350px;
+            height: auto;
+            min-height: 200px;
+            max-height: calc(100vh - 120px);
+        }
+
+        .site-info-toggle-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #333333;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .site-info-toggle-btn:hover {
+            color: #547bf7;
+            background: rgba(84, 123, 247, 0.1);
+        }
+
+        .site-info-content-expandable {
+            flex: 1;
+            padding: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.1s;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .site-info-expandable.expanded .site-info-content-expandable {
+            opacity: 1;
+            display: block;
+        }
+
+        /* Measure tool */
+        .measure-tool-button {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #333333;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            margin-bottom: 8px;
+        }
+
+        .measure-tool-button:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #007cbf;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 124, 191, 0.2);
+        }
+
+        .measure-tool-button.active {
+            background: #007cbf;
+            color: white;
+            border-color: #005a8a;
+            box-shadow: 0 8px 24px rgba(0, 124, 191, 0.4);
+        }
+
+        /* Hide mapbox attribution but preserve navigation controls */
+        .mapboxgl-ctrl-logo,
+        .mapboxgl-ctrl-attrib,
+        .mapboxgl-ctrl-attrib-button,
+        .mapboxgl-ctrl-attrib-inner {
+            display: none !important;
+        }
+
+        /* Ensure navigation controls are visible and properly positioned */
+        .mapboxgl-ctrl-bottom-right {
+            display: block !important;
+            position: absolute !important;
+            pointer-events: auto !important;
+            z-index: 100 !important;
+            visibility: visible !important;
+            bottom: 88px !important; /* Moved up to avoid ADAM chat widget */
+            right: 10px !important;
+        }
+
+        /* Hide top-right controls to avoid conflicts */
+        .mapboxgl-ctrl-top-right {
+            display: none !important;
+        }
+
+        /* Force all navigation control elements to be visible */
+        .mapboxgl-ctrl-group {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        .mapboxgl-ctrl-zoom-in,
+        .mapboxgl-ctrl-zoom-out,
+        .mapboxgl-ctrl-compass,
+        .mapboxgl-ctrl-scale,
+        .mapboxgl-ctrl-fullscreen {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Ensure buttons inside control groups work */
+        .mapboxgl-ctrl-group button {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Style the navigation controls to match the app design */
+        .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl {
+            margin-bottom: 8px;
+            margin-right: 8px;
+        }
+
+        .mapboxgl-ctrl-group {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(0, 0, 0, 0.08) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+            backdrop-filter: blur(20px) !important;
+        }
+
+        .mapboxgl-ctrl-group button {
+            background: transparent !important;
+            border: none !important;
+            color: #333333 !important;
+            font-size: 16px !important;
+        }
+
+        .mapboxgl-ctrl-group button:hover {
+            background: rgba(84, 123, 247, 0.1) !important;
+            color: #547bf7 !important;
+        }
+
+        
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .site-header {
+                padding: 12px 16px;
+            }
+
+            .engineering-flow-progress {
+                padding: 12px 16px;
+                height: 70px;
+            }
+
+            .flow-container {
+                overflow-x: auto;
+                padding: 8px 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .project-info-section {
+                margin-right: 0;
+                margin-bottom: 8px;
+            }
+
+            .project-name {
+                font-size: 14px;
+            }
+
+            .project-address {
+                font-size: 12px;
+            }
+
+            .flow-steps-container {
+                overflow-x: auto;
+                width: 100%;
+            }
+
+            .step-content {
+                display: none;
+            }
+
+            .flow-connector {
+                width: 40px;
+                margin: 0 8px;
+            }
+
+            #inspectorMap {
+                top: 106px;
+            }
+
+            .top-left-controls {
+                top: 116px;
+                left: 16px;
+            }
+
+            .right-edge-controls {
+                top: 116px;
+                right: 16px;
+            }
+
+            .inspector-panel {
+                top: 116px;
+                left: 8px;
+                width: 36px;
+                height: 36px;
+            }
+
+            .inspector-panel.expanded {
+                position: fixed;
+                top: 106px;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: auto;
+                height: auto;
+                border-radius: 0;
+                z-index: 1500;
+            }
+
+            .buildings-control-expandable {
+                width: 100px;
+            }
+
+            .buildings-toggle-btn {
+                font-size: 12px;
+            }
+        }
+
+        /* Success states */
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        /* Measure tool styles */
+        .measure-popup .mapboxgl-popup-content {
+            padding: 0;
+            border-radius: 6px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .measure-popup .mapboxgl-popup-tip {
+            border-top-color: rgba(255, 107, 53, 0.95) !important;
+        }
+
+        .live-measure .mapboxgl-popup-content {
+            box-shadow: 02px 8px rgba(255, 107, 53, 0.3);
+            border: 1px solid rgba(255, 107, 53, 0.5);
+        }
+
+        .live-measure .mapboxgl-popup-tip {
+            border-top-color: rgba(255, 107, 53, 0.8) !important;
+        }
+
+        .measure-final .mapboxgl-popup-content {
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+            border: 2px solid rgba(255, 107, 53, 0.8);
+        }
+
+        .measure-distance {
+            background: rgba(255, 107, 53, 0.95);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        .live-distance {
+            background: rgba(255, 107, 53, 0.8);
+            animation: pulse-measure 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-measure {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* Floor Plan Styles */
+        .floorplan-status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .floorplan-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .floorplan-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .floorplan-status.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #99d3ff;
+        }
+
+        .floorplan-controls {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .floorplan-context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 10000;
+            padding: 4px 0;
+            min-width: 140px;
+            font-size: 13px;
+        }
+
+        .floorplan-context-menu div {
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .floorplan-context-menu div:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Floor plan upload enhanced */
+        .upload-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .draw-button {
+            background: linear-gradient(135deg, #28a745 0%, #20923a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            text-align: center;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .draw-button:hover {
+            background: linear-gradient(135deg, #34ce57 0%, #28a745 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+        }
+
+        .draw-button.active {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .draw-button.active:hover {
+            background: linear-gradient(135deg, #e14752 0%, #dc3545 100%);
+            box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+        }
+
+        .draw-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-row .action-button {
+            margin: 0;
+        }
+
+
+
+        /* Measure Tool Button - Site Selector Style */
+        .measure-tool-button {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #333333;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            position: relative;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .measure-tool-button:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #007cbf;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 124, 191, 0.2);
+        }
+
+        .measure-tool-button.active {
+            background: #007cbf;
+            color: white;
+            border-color: #005a8a;
+            box-shadow: 0 8px 24px rgba(0, 124, 191, 0.4);
+        }
+
+        /* Search Control Styles */
+        .search-control-expandable {
+            position: relative;
+            z-index: 1100;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: 40px;
+            width: 40px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            pointer-events: auto;
+            margin-right: 8px;
+        }
+
+        .search-control-expandable.expanded {
+            width: 280px;
+        }
+
+        .search-toggle-btn {
+            width: 40px;
+            height: 40px;
+            margin: 0;
+            padding: 0;
+            border-radius: 8px;
+            flex-shrink: 0;
+            font-size: 16px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            color: #333333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+        }
+
+        .search-toggle-btn:hover {
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .search-toggle-btn.active {
+            background: rgba(84, 123, 247, 0.2);
+            color: #547bf7;
+        }
+
+        .search-input-content {
+            padding: 8px 12px 8px 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.1s;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .search-control-expandable.expanded .search-input-content {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .search-input-content input {
+            flex: 1;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            background: white;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input-content input:focus {
+            border-color: #547bf7;
+            box-shadow: 0 0 0 2px rgba(84, 123, 247, 0.15);
+        }
+
+        .clear-search-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .clear-search-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .search-status {
+            position: absolute;
+            top: 100%;
+            left: 40px;
+            right: 0;
+            margin-top: 4px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1101;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-status.success {
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+        }
+
+        .search-status.error {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+        }
+
+        /* Lock Button Styles */
+        .lock-button {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            color: #333333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            flex-shrink: 0;
+        }
+
+        .lock-button:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #ffc107;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+        }
+        .lock-button.locked {
+            background: #ffc107;
+            color: white;
+            border-color: #e0a800;
+            box-shadow: 0 4px 16px rgba(255, 193, 7, 0.4);
+        }
+
+        .lock-button.locked:hover {
+            background: #ffcd39;
+        }
+
+        /* Dimensions Control - Within Container */
+        .dimensions-control-independent {
+            position: relative;
+            z-index: 1100;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            height: 40px;
+            width: 140px;
+            display: flex;
+            align-items: center;
+            pointer-events: auto;
+            padding: 0 8px;
+            gap: 8px;
+        }
+
+        .dimensions-toggle-btn {
+            flex: 1;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            color: #333333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            pointer-events: auto;
+        }
+
+        .dimensions-toggle-btn:hover {
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .dimensions-toggle-btn.active {
+            background: rgba(84, 123, 247, 0.2);
+            color: #547bf7;
+        }
+
+        /* Dimensions Toggle Switch */
+        .dimensions-toggle-switch {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .dimensions-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .dimensions-toggle-switch .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+            border-radius: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .dimensions-toggle-switch .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 1px;
+            bottom: 1px;
+            background-color: #ffffff;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .dimensions-toggle-switch input:checked + .toggle-slider {
+            background-color: #547bf7;
+            border-color: #547bf7;
+        }
+
+        .dimensions-toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(14px);
+        }
+
+        /* Legend Lock Icon */
+        .legend-lock-icon {
+            font-size: 10px;
+            color: #ffc107;
+        }
+
+        /* 3D Buildings Control - Within Container */
+        .buildings-control-independent {
+            position: relative;
+            z-index: 1100;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: 40px;
+            width: 120px;
+            transition: height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+        }
+
+        .buildings-control-independent.expanded {
+            height: 88px;
+        }
+
+        .buildings-toggle-btn {
+            width: 100%;
+            height: 40px;
+            margin: 0;
+            padding: 0 8px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            color: #333333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            z-index: 1101;
+        }
+
+        .buildings-control-independent.expanded .buildings-toggle-btn {
+            border-radius: 8px 8px 0 0;
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .buildings-toggle-btn:hover {
+            background: rgba(84, 123, 247, 0.1);
+            color: #547bf7;
+        }
+
+        .buildings-toggle-btn.active {
+            background: rgba(84, 123, 247, 0.2);
+            color: #547bf7;
+        }
+
+        .buildings-slider-content {
+            padding: 12px 8px 16px 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.1s;
+            pointer-events: none;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .buildings-control-independent.expanded .buildings-slider-content {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .buildings-slider-content label {
+            font-size: 11px;
+            color: #333;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .buildings-slider-content input[type="range"] {
+            width: 80px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .buildings-slider-content input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #547bf7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .buildings-slider-content input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #547bf7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .buildings-slider-content span {
+            display: none;
+        }
+
+    /* Help Button Styles */
+        .help-button {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #333333;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            margin-bottom: 8px;
+        }
+
+        .help-button:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #547bf7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(84, 123, 247, 0.2);
+            color: #547bf7;
+        }
+
+        /* Map Legend Styles */
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 8px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            backdrop-filter: blur(20px);
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 12px;
+            color: #333333;
+            transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            padding: 10px 12px;
+        }
+
+        .map-legend.shifted {
+            left: 388px; /* Move right when panel is open */
+        }
+
+        .legend-header {
+            margin-bottom: 8px;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .legend-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend-color.site-boundary {
+            background-color: #007cbf;
+        }
+
+        .legend-color.buildable-area {
+            background-color: #003d5f;
+            opacity: 0.8;
+        }
+
+        .legend-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Edge Selection Overlay */
+        .edge-selection-overlay {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            padding: 16px 24px;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: none;
+            pointer-events: none;
+            animation: fadeInSlide 0.3s ease-out;
+            transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Edge Labels */
+        .edge-label-popup {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #333333;
+            backdrop-filter: blur(5px);
+            pointer-events: auto;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: all 0.2s ease;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .edge-label-popup:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #007cbf;
+            transform: scale(1.05);
+        }
+
+        .edge-label-popup.front-edge {
+            background: rgba(40, 167, 69, 0.9);
+            color: #ffffff;
+            border-color: #28a745;
+        }
+
+        .edge-label-popup.front-edge:hover {
+            background: rgba(40, 167, 69, 1);
+        }
+
+        .edge-label-popup.back-edge {
+            background: rgba(220, 53, 69, 0.9);
+            color: #ffffff;
+            border-color: #dc3545;
+        }
+
+        .edge-label-popup.back-edge:hover {
+            background: rgba(220, 53, 69, 1);
+        }
+
+        /* Remove mapbox popup styling to prevent white cards */
+        .mapboxgl-popup-content {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .mapboxgl-popup-tip {
+            display: none !important;
+        }
+
+        .mapboxgl-popup.edge-label-popup-container .mapboxgl-popup-content {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .edge-selection-overlay.show {
+            display: block;
+        }
+
+        .edge-selection-overlay.shifted {
+            left: calc(50% + 190px);
+        }
+
+        .overlay-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .overlay-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .overlay-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333333;
+            letter-spacing: -0.01em;
+        }
+
+        @keyframes fadeInSlide {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Help Tooltip Modal */
+        .help-tooltip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2500;
+            backdrop-filter: blur(8px);
+        }
+
+        .help-tooltip-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .help-tooltip-content h4 {
+            color: #333333;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+        }
+
+        .help-tooltip-content ol {
+            color: #333333;
+            margin: 16px 0;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+
+        .help-tooltip-content ol li {
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .help-tooltip-content ol li strong {
+            color: #007cbf;
+            font-weight: 600;
+        }
+
+        .close-help-btn {
+            background: linear-gradient(135deg, #007cbf 0%, #005a8a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+        }
+
+        .close-help-btn:hover {
+            background: linear-gradient(135deg, #0096d6 0%, #007cbf 100%);
+            transform: translateY(-1px);
+        }
+
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0; 
+                transform: scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .help-tooltip-content {
+                max-width: 95%;
+                padding: 20px;
+                margin: 16px;
+                max-height: 85vh;
+            }
+
+            .help-tooltip-content h4 {
+                font-size: 1.2rem;
+            }
+
+            .help-tooltip-content ol li {
+                font-size: 13px;
+                margin: 10px 0;
+            }
+
+            .edge-selection-overlay {
+                top: 46px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 12px 20px;
+                font-size: 13px;
+            }
+
+            .overlay-text {
+                font-size: 13px;
+            }
+
+            .overlay-icon {
+                font-size: 16px;
+            }
+
+            .edge-selection-overlay.shifted {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        .opacity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .opacity-value {
+            margin-left: 8px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        /* Collapsed state for all cards */
+        .boundary-controls.collapsed .boundary-content,
+        .boundary-controls.collapsed .setback-content,
+        .boundary-controls.collapsed .floorplan-content,
+        .boundary-controls.collapsed .site-boundary-content,
+        .floorplan-upload.collapsed .floorplan-content,
+        .info-section.collapsed .gradient-content {
+            display: none !important;
+        }
+
+        /* Consistent targeting for all cards */
+        .boundary-controls.collapsed .boundary-content,
+        .boundary-controls.collapsed .site-boundary-content,
+        .floorplan-upload.collapsed .floorplan-content {
+            display: none !important;
+        }
+
+        .boundary-controls.collapsed,
+        .floorplan-upload.collapsed,
+        .info-section.collapsed {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 12px 20px;
+        }
+
+        .boundary-controls.collapsed:hover,
+        .floorplan-upload.collapsed:hover,
+        .info-section.collapsed:hover {
+            background-color: rgba(0, 123, 191, 0.05);
+        }
+
+        /* Collapsed title styling for Site Boundary card */
+        .boundary-controls.collapsed .info-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .boundary-controls.collapsed .info-title:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+        }
+</style>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.css' rel='stylesheet' />
+    <script src='https://api.mapbox.gl/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js'></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adam-chat-widget.css') }}">
+</head>
+<body class="authenticated">
+    <!-- Site Header -->
+    <div class="site-header">
+        <div class="header-left">
+            <a href="/project/{{ project_data.get('id', project_id) if project_data else project_id }}" class="header-back-btn">
+                ← Project Overview
+            </a>
+            <div class="header-title-section">
+                <h1 class="header-title">Site Inspector</h1>
+                <p class="header-subtitle">Inspect and Evaluate Your Site Before Design</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="/terrain-viewer?project_id={{ project_data.get('id', project_id) if project_data else project_id }}" class="header-cta-btn">Cut & Fill Analysis</a>
+        </div>
+    </div>
+
+    <!-- Engineering Flow Progress -->
+    <div class="engineering-flow-progress">
+        <div class="flow-container">
+            <!-- Project Information -->
+            <div class="project-info-section">
+                {% if project_data.name %}
+                <div class="project-name">{{ project_data.name }}</div>
+                {% endif %}
+                {% if project_data.address %}
+                <div class="project-address">{{ project_data.address }}</div>
+                {% endif %}
+            </div>
+
+            <div class="flow-steps-container">
+                <div class="flow-step active clickable" onclick="navigateToStep(1)">
+                    <div class="step-indicator">
+                        <div class="step-number">1</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Site Inspector</div>
+                        <div class="step-subtitle">Define site boundaries</div>
+                    </div>
+                </div>
+
+                <div class="flow-connector"></div>
+
+                <div class="flow-step clickable" onclick="navigateToStep(2)">
+                    <div class="step-indicator">
+                        <div class="step-number">2</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Terrain Analysis</div>
+                        <div class="step-subtitle">Analyse site topography</div>
+                    </div>
+                </div>
+
+                <div class="flow-connector"></div>
+
+                <div class="flow-step clickable" onclick="navigateToStep(3)">
+                    <div class="step-indicator">
+                        <div class="step-number">3</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Structure Designer</div>
+                        <div class="step-subtitle">Design your building</div>
+                    </div>
+                </div>
+
+                <div class="flow-connector"></div>
+
+                <div class="flow-step clickable" onclick="navigateToStep(4)">
+                    <div class="step-indicator">
+                        <div class="step-number">4</div>
+                        <div class="step-check">✓</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">Structure Analyser</div>
+                        <div class="step-subtitle">Validate structural integrity</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="inspectorMap"></div>
+
+    <!-- Map Controls Container -->
+    <div class="map-controls-container" id="mapControlsContainer">
+        <!-- Map Style Selector (Basemaps) -->
+        <div class="basemap-control">
+            <select class="style-selector" id="styleSelector">
+                <option value="mapbox://styles/mapbox/outdoors-v12" selected>Outdoors</option>
+                <option value="mapbox://styles/mapbox/satellite-streets-v12">Satellite Streets</option>
+                <option value="mapbox://styles/mapbox/light-v11">Light</option>
+            </select>
+        </div>
+
+        <!-- 3D Buildings Control -->
+        <div class="buildings-control-independent" id="buildingsControl">
+            <button class="buildings-toggle-btn" id="buildingsToggle">3D Buildings</button>
+            <div class="buildings-slider-content">
+                <label for="buildingsOpacity">Opacity</label>
+                <div class="opacity-control">
+                    <input type="range" id="buildingsOpacity" min="0.1" max="1" step="0.1" value="0.6">
+                    <span class="opacity-value" id="buildingsOpacityValue">60%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dimensions Control Button -->
+        <div class="dimensions-control-independent" id="dimensionsControl">
+            <button class="dimensions-toggle-btn" onclick="
+                console.log('Dimensions button clicked');
+                if(window.mapFeaturesManager && window.mapFeaturesManager.toggleDimensions) {
+                    console.log('Using mapFeaturesManager (fallback or real)');
+                    window.mapFeaturesManager.toggleDimensions();
+                } else if(window.siteInspectorCore && window.siteInspectorCore.getManager) { 
+                    const manager = window.siteInspectorCore.getManager('mapFeatures'); 
+                    console.log('MapFeatures manager:', manager);
+                    if(manager && manager.toggleDimensions) {
+                        manager.toggleDimensions(); 
+                    } else {
+                        console.warn('No dimensions toggle method found');
+                    }
+                } else {
+                    console.warn('Site inspector core not available');
+                }
+            ">
+                Dimensions
+            </button>
+            <div class="dimensions-toggle-switch">
+                <input type="checkbox" id="dimensionsToggle" checked>
+                <span class="toggle-slider"></span>
+            </div>
+        </div></div>
+        </div>
+    </div>
+
+    <!-- Map Legend -->
+    <div class="map-legend" id="mapLegend">
+        <div class="legend-header">
+            <span class="legend-title">Map Legend</span>
+        </div>
+        <div class="legend-content" id="legendContent">
+            <div class="legend-item">
+                <div class="legend-color site-boundary"></div>
+                <span class="legend-label">Site Boundary</span>
+                <span class="legend-lock-icon" id="legendLockIcon" style="display: none; margin-left: 4px;">🔒</span>
+            </div>
+            <div class="legend-item legend-buildable-area-item" style="display: none;">
+                <div class="legend-color buildable-area"></div>
+                <span class="legend-label">Buildable Area</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edge Selection Instruction Overlay -->
+    <div class="edge-selection-overlay" id="edgeSelectionOverlay">
+        <div class="overlay-content">
+            <span class="overlay-icon">🎯</span>
+            <span class="overlay-text">Click on the polygon edges to select front and back</span>
+        </div>
+    </div>
+
+    <!-- Right Edge Controls -->
+    <div class="right-edge-controls">
+        <!-- Search Control -->
+        <div class="search-control-expandable" id="searchControl">
+            <button class="search-toggle-btn" id="searchButton" title="Search locations">🔍</button>
+            <div class="search-input-content">
+                <input type="text" id="searchInput" placeholder="Search for an address or location..." />
+                <button class="clear-search-btn" id="clearSearchButton" title="Clear search">✕</button>
+                <div class="search-status" id="searchStatus" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Help Button -->
+        <button class="help-button" id="helpButton" title="Help">?</button>
+
+        <!-- Measure Tool Control -->
+        <div class="measure-tool-button" id="measureToolButton" title="Measure distances">📐</div>
+
+
+    </div>
+
+    <!-- Site Inspector Panel -->
+    <div class="inspector-panel" id="inspectorPanel">
+        <button class="panel-toggle-btn" id="panelToggleBtn">⚙️</button>
+
+        <div class="panel-header">
+            <button class="panel-close">✕</button>
+        </div>
+
+        <div class="panel-content" id="panelContent">
+            <!-- Site Boundary Drawing Tool -->
+            <div class="boundary-controls" id="siteBoundaryControls">
+                <div class="info-title">
+                    1. Site Boundary
+                    <span class="boundary-applied-check" id="boundaryAppliedCheck" style="display: none;">✅</span>
+                </div>
+
+                <div class="boundary-content site-boundary-content">
+                    <p style="font-size: 13px; color: #666; margin: 8px 0 20px 0;">Draw or load your property boundary to begin the site analysis.</p>
+
+                    <!-- Drawing Controls -->
+                    <div class="boundary-drawing-controls" style="margin: 12px 0;">
+                        <button id="drawPolygonButton" class="draw-button" style="width: 100%; margin-bottom: 8px;">
+                            Draw Site Boundary
+                        </button>
+                        <div class="button-row" style="display: none; gap: 8px;" id="drawingButtonRow">
+                            <button id="stopDrawingButton" class="action-button" style="background: #dc3545; flex: 1;">
+                                Stop Drawing
+                            </button>
+                            <button id="clearBoundaryButton" class="action-button" style="background: #dc3545; flex: 1;">
+                                Clear Boundary
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Boundary Info Display -->
+                    <div id="boundaryInfoDisplay" class="boundary-info-display" style="display: none; margin: 12px 0; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px;">
+                        <div class="info-row">
+                            <span class="info-label">Area:</span>
+                            <span id="boundaryAreaDisplay" class="info-value">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Perimeter:</span>
+                            <span id="boundaryPerimeterDisplay" class="info-value">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Points:</span>
+                            <span id="boundaryPointsDisplay" class="info-value">-</span>
+                        </div>
+                    </div>
+
+                    <div class="boundary-action-buttons" style="display: flex; gap: 8px; margin-top: 16px; align-items: center;">
+                        <button id="confirmBoundaryButton" class="action-button" style="display: none; flex: 1; margin: 0;">
+                            Confirm Site Boundary
+                        </button>
+                        <button id="clearBoundaryButton2" class="action-button" style="display: none; flex: 1; margin: 0; background: #dc3545;">
+                            Clear Boundary
+                        </button>
+                        <button id="lockBoundaryButton" class="lock-button" style="display: none; height: 48px; width: 48px; flex-shrink: 0;" title="Lock site boundary">
+                            🔓
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Setbacks Controls -->
+            <div class="boundary-controls collapsed" id="boundaryControls" style="margin-top: 24px;">
+                <div class="info-title">
+                    2. Property Setbacks
+                    <span class="setbacks-applied-check" id="setbacksAppliedCheck" style="display: none;">✅</span>
+                </div>
+
+                <div class="boundary-content" id="boundaryContent">
+                    <p style="font-size: 13px; color: #666; margin: 8px 0 20px 0;">Click two edges of your property to define front and back, then enter setback requirements.</p>
+
+                    <!-- Edge Selection Mode -->
+                    <div class="edge-selection-mode" style="margin: 12px 0;">
+                        <button id="edgeSelectionButton" class="edge-selection-btn">
+                            Select Front & Back Edges
+                        </button>
+                    </div>
+
+                    <!-- Selected Edges Display -->
+                    <div id="selectedEdgesDisplay" class="selected-edges-display" style="display: none; margin: 12px 0;">
+                        <div class="edge-item">
+                            <span class="edge-label">Front Setback:</span>
+                            <span id="frontEdgeDisplay" class="edge-value">Not selected</span>
+                        </div>
+                        <div class="edge-item">
+                            <span class="edge-label">Back Setback:</span>
+                            <span id="backEdgeDisplay" class="edge-value">Not selected</span>
+                        </div>
+                    </div>
+
+                    <!-- Setback Input Fields -->
+                    <div id="setbackInputsContainer" class="setback-inputs" style="margin: 16px 0; display: none;">
+                        <div class="input-group">
+                            <label for="frontSetback">Front Setback (m)</label>
+                            <input type="number" id="frontSetback" min="0" step="0.1" value="4.5" class="setback-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="backSetback">Back Setback (m)</label>
+                            <input type="number" id="backSetback" min="0" step="0.1" value="3.5" class="setback-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="sideSetback">Side Setback (m)</label>
+                            <input type="number" id="sideSetback" min="0" step="0.1" value="1.5" class="setback-input">
+                        </div>
+                    </div>
+
+                    <button id="recalculateButton" class="setback-button" style="display: none;">
+                        Calculate & Confirm Buildable Area
+                    </button>
+                </div>
+            </div>
+
+            <!-- Structure Placement -->
+            <div class="floorplan-upload collapsed" id="floorplanControls" style="margin-top: 24px;">
+                <div class="info-title">
+                    3. Structure Placement
+                    <span class="floorplan-applied-check" id="floorplanAppliedCheck" style="display: none;">📐</span>
+                </div>
+
+                <div class="floorplan-content" id="floorplanContent">
+                    <p style="font-size: 13px; color: #666666; margin: 8px 0;">Define the building footprint by drawing its intended location within the site boundary.</p>
+
+                    <button class="draw-button" id="drawFloorplanButton" style="margin-top: 8px; width: 100%;">Draw Structure Footprint</button>
+
+                    <div class="floorplan-status" style="font-size: 13px; margin-top: 12px; padding: 8px 12px; border-radius: 6px; display: none;"></div>
+
+                    <div class="floorplan-action-buttons" style="display: flex; gap: 8px; margin-top: 16px; align-items: center;">
+                        <button id="clearFloorplanButton" class="action-button" style="display: none; flex: 1; margin: 0; background: #dc3545;">
+                            Clear Structure
+                        </button>
+                        <button id="lockFloorplanButton" class="lock-button" style="display: none; height: 48px; width: 48px; flex-shrink: 0;" title="Lock structure footprint">
+                            🔓
+                        </button>
+                    </div>
+
+                    {% if site_data.get('floorplan_data') and site_data.get('floorplan_data').get('success') and site_data.get('floorplan_data').get('boundaries') %}
+                    <div style="font-size: 13px; color: #155724; margin-top: 12px;">
+                        ✓ Floor plan uploaded ({{ site_data.get('floorplan_data').get('boundaries')|length }} boundary points)
+                    </div>
+                    {% endif %}
+
+
+                </div>
+            </div>
+
+
+
+
+        </div>
+    </div>
+
+    <!-- Help Tooltip Modal -->
+    <div class="help-tooltip" id="helpTooltip">
+        <div class="help-tooltip-content">
+            <h4>Site Inspector Tools Guide:</h4>
+            <ol>
+                <li><strong>Site Boundary:</strong> Draw or load your property boundary to begin analysis. Use "Draw Site Boundary" to create new polygons or "Load Existing Boundary" to retrieve saved data</li>
+                <li><strong>Property Setbacks:</strong> Select front and back edges of your site boundary, then enter setback requirements to calculate buildable area</li>
+                <li><strong>Structure Placement:</strong> Define the building footprint by drawing its intended location within the site boundary. Create 3D building visualizations with adjustable height settings</li>
+                <li><strong>Map Controls:</strong> Switch between map styles (Streets, Satellite, Outdoors, Light) and toggle 3D buildings with adjustable opacity</li>
+                <li><strong>Measure Tool (📐):</strong> Click two points on the map to measure distances between them</li>
+                <li><strong>Site Information (ℹ️):</strong> View detailed site data including council, zoning, area, slope, and aspect information</li>
+                <li><strong>Panel Controls:</strong> Use the gear icon (⚙️) to open/close the inspector panel with all analysis tools</li>
+            </ol>
+            <p style="margin-top: 16px; font-size: 13px; color: #666;">
+                <strong>Workflow:</strong> Start by drawing or loading a site boundary, then define setbacks to calculate buildable area. Draw floor plans to visualize your building design.
+            </p>
+            <button class="close-help-btn" onclick="closeHelpTooltip()">Got it</button>
+        </div>
+    </div>
+
+
+
+
+
+
+                Site Inspector
+
+                    {% if project_data and project_data.get('address') %}
+                        {{ project_data.address }}
+                    {% elif site_data and site_data.get('address') %}
+                        {{ site_data.address }}
+                    {% else %}
+                        No location selected
+                    {% endif %}
+
+                {% if project_data and project_data.get('name') %}
+
+                    Project: {{ project_data.name }}
+
+                {% endif %}
+
+
+
+
+    <script>
+        // Inject project data if available
+        {% if project_data %}
+        console.log('Template project_data:', {{ project_data|tojson|safe }});
+        window.projectId = {{ project_data.get('id', 'null') }};
+        window.projectData = {
+            id: {{ project_data.get('id', 'null') }},
+            name: "{{ project_data.get('name', '') }}",
+            address: "{{ project_data.get('address', '') }}"
+        };
+        {% else %}
+        console.log('No project_data available in template');
+        window.projectId = null;
+        window.projectData = null;
+        {% endif %}
+
+        // Make site data available globally for JavaScript modules
+        window.siteData = {{ site_data_json|safe }};
+        window.projectId = {% if project_id %}'{{ project_id }}'{% else %}null{% endif %};
+
+        // All Site Inspector functionality is now handled by the modular system
+        // Global functions are available through the UIPanelManager and other managers
+
+        // Help tooltip functions
+        function showHelpTooltip() {
+            const helpTooltip = document.getElementById('helpTooltip');
+            if (helpTooltip) {
+                helpTooltip.style.display = 'flex';
+                console.log('[SiteInspector] Help tooltip opened');
+            }
+        }
+
+        function closeHelpTooltip() {
+            const helpTooltip = document.getElementById('helpTooltip');
+            if (helpTooltip) {
+                helpTooltip.style.display = 'none';
+                console.log('[SiteInspector] Help tooltip closed');
+            }
+        }
+
+        // Setup help button event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const helpButton = document.getElementById('helpButton');
+            if (helpButton) {
+                helpButton.addEventListener('click', showHelpTooltip);
+                console.log('[SiteInspector] Help button event listener attached');
+            }
+
+            // Close help tooltip when clicking outside
+            document.addEventListener('click', function(event) {
+                const helpTooltip = document.getElementById('helpTooltip');
+                const helpContent = document.querySelector('.help-tooltip-content');
+                const helpButton = document.getElementById('helpButton');
+
+                if (helpTooltip && helpTooltip.style.display === 'flex' && 
+                    !helpContent.contains(event.target) && 
+                    event.target !== helpButton) {
+                    closeHelpTooltip();
+                }
+            });
+        });
+
+        // Function to sync dimensions button click with toggle
+        function toggleDimensionsWithSync() {
+            const toggle = document.getElementById('dimensionsToggle');
+            if (toggle) {
+                toggle.checked = !toggle.checked;
+                // Trigger the change event to activate the dimensions feature
+                toggle.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Navigation function for engineering flow steps
+        function navigateToStep(step) {
+            let projectId = new URLSearchParams(window.location.search).get('project_id') || 
+                           new URLSearchParams(window.location.search).get('project');
+
+            // Clean up malformed project IDs
+            if (projectId && (projectId.includes('?') || projectId.includes('&'))) {
+                projectId = projectId.split('?')[0].split('&')[0];
+            }
+
+            // Fallback to project data from template if available
+            {% if project_data and project_data.get('id') %}
+            if (!projectId || projectId === 'null' || projectId === '') {
+                projectId = '{{ project_data.get("id") }}';
+            }
+            {% endif %}
+
+            // Ensure project ID is valid and clean
+            if (projectId && typeof projectId === 'string') {
+                // Clean any malformed project IDs that contain URL parameters
+                projectId = projectId.split('?')[0].split('&')[0].trim();
+                if (!/^\d+$/.test(projectId)) {
+                    console.error('Invalid project ID format:', projectId);
+                    return;
+                }
+            }
+
+            if (!projectId) {
+                console.error('No valid project ID found for navigation');
+                return;
+            }
+
+            const routes = {
+                1: `/site-inspector?project_id=${projectId}`,
+                2: `/terrain-viewer?project_id=${projectId}`,
+                3: `/structure-designer?project_id=${projectId}`,
+                4: `/structural-analyser?project_id=${projectId}`ojectId}`
+            };
+
+            if (routes[step] && projectId) {
+                window.location.href = routes[step];
+            } else {
+                console.error('No project ID available for navigation');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Normalize site data before initialization
+        if (siteData && siteData.coordinates) {
+            // Ensure coordinates are in correct format and add missing fields
+            if (!siteData.center && !siteData.center_lat && siteData.coordinates.length > 0) {
+                let totalLat = 0, totalLng = 0, validPoints = 0;
+
+                for (const coord of siteData.coordinates) {
+                    let lat, lng;
+                    if (typeof coord === 'object' && coord.lat && coord.lng) {
+                        lat = coord.lat;
+                        lng = coord.lng;
+                    } else if (Array.isArray(coord) && coord.length >= 2) {
+                        // Auto-detect coordinate format
+                        if (Math.abs(coord[0]) > Math.abs(coord[1]) && Math.abs(coord[0]) > 90) {
+                            lng = coord[0];
+                            lat = coord[1];
+                        } else {
+                            lat = coord[0];
+                            lng = coord[1];
+                        }
+                    }
+
+                    if (lat && lng && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        totalLat += lat;
+                        totalLng += lng;
+                        validPoints++;
+                    }
+                }
+
+                if (validPoints > 0) {
+                    siteData.center = {
+                        lat: totalLat / validPoints,
+                        lng: totalLng / validPoints
+                    };
+                }
+            }
+
+            // Add default type if missing
+            if (!siteData.type) {
+                siteData.type = 'residential';
+            }
+
+            // Calculate area if missing
+            if (!siteData.area && siteData.coordinates.length >= 3) {
+                // Simple polygon area calculation (approximate)
+                let area = 0;
+                const coords = siteData.coordinates;
+                for (let i = 0; i < coords.length; i++) {
+                    const j = (i + 1) % coords.length;
+                    let x1, y1, x2, y2;
+
+                    if (Array.isArray(coords[i])) {
+                        x1 = coords[i][0]; y1 = coords[i][1];
+                        x2 = coords[j][0]; y2 = coords[j][1];
+                    } else {
+                        x1 = coords[i].lng || coords[i].x || 0;
+                        y1 = coords[i].lat || coords[i].y || 0;
+                        x2 = coords[j].lng || coords[j].x || 0;
+                        y2 = coords[j].lat || coords[j].y || 0;
+                    }
+
+                    area += (x1 * y2 - x2 * y1);
+                }
+                siteData.area = Math.abs(area / 2) * 12391399903; // Rough conversion to m²
+                siteData.area_m2 = siteData.area;
+            }
+        }
+
+        // Initialize site inspector
+        window.siteInspector = new SiteInspectorCore();
+        window.siteInspector.initialize(siteData);
+            // Site Inspector initialization is handled by site-inspector-core.js
+            console.log('[SiteInspector] Template ready - initialization handled by modular system');
+        });
+    </script>
+</body>
+</html>

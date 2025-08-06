@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structure Designer - EngineRoom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+
+    <!-- Load structure designer modules in dependency order -->
+    <script>
+        // Wait for Three.js to load, then load structure designer modules sequentially
+        function loadStructureDesigner() {
+            if (typeof THREE === 'undefined') {
+                setTimeout(loadStructureDesigner, 100);
+                return;
+            }
+
+            console.log('[StructureDesigner] Three.js loaded, loading modules...');
+
+            // Load scripts in sequence to ensure dependencies are available
+            const scripts = [
+                '{{ url_for("static", filename="js/structure-designer-core.js") }}',
+                '{{ url_for("static", filename="js/structure-designer-drawing.js") }}',
+                '{{ url_for("static", filename="js/structure-designer-structures.js") }}',
+                '{{ url_for("static", filename="js/structure-designer.js") }}'
+            ];
+
+            function loadNextScript(index) {
+                if (index >= scripts.length) {
+                    console.log('[StructureDesigner] All modules loaded successfully');
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = scripts[index];
+                script.onload = () => {
+                    console.log(`[StructureDesigner] Loaded: ${scripts[index]}`);
+                    loadNextScript(index + 1);
+                };
+                script.onerror = (error) => {
+                    console.error(`[StructureDesigner] Failed to load: ${scripts[index]}`, error);
+                };
+                document.head.appendChild(script);
+            }
+
+            loadNextScript(0);
+        }
+
+        // Start loading when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadStructureDesigner);
+        } else {
+            loadStructureDesigner();
+        }
+    </script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #1a1a1a;
+            overflow: hidden;
+        }
+
+        #designCanvas {
+            position: fixed;
+            top: 60px;
+            left: 400px;
+            right: 0;
+            bottom: 0;
+            background: #1a1a1a;
+            z-index: 1000;
+            width: calc(100vw - 400px);
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 16px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 2000;
+            height: 60px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-title {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            color: #cccccc;
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin: 2px 0 0 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .header-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Design Panel */
+        .designer-panel {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 320px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            background: rgba(42, 42, 42, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 20px 20px 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(42, 42, 42, 0.95);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+        }
+
+        .panel-subtitle {
+            font-size: 14px;
+            color: #cccccc;
+            margin: 0;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        /* Control Sections */
+        .control-section {
+            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-description {
+            font-size: 13px;
+            color: #cccccc;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        /* View Controls */
+        .view-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .view-btn {
+            background: linear-gradient(135deg, #4a6cf7 0%, #3a5ae0 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn:hover {
+            background: linear-gradient(135deg, #5a7cff 0%, #4a6cf7 100%);
+            transform: translateY(-1px);
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, #28a745 0%, #20923a 100%);
+        }
+
+        /* Drawing Tools */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tool-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn:hover {
+            background: linear-gradient(135deg, #7d8a96 0%, #6c757d 100%);
+            transform: translateY(-1px);
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(135deg, #28a745 0%, #20923a 100%);
+        }
+
+        /* Input Groups */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Allows input to shrink below content size */
+        }
+
+        .input-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #cccccc;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .input-field {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            transition: border-color 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
+        }
+
+        /* Action Buttons */
+        .action-button {
+            background: linear-gradient(135deg, #4a6cf7 0%, #3a5ae0 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            width: 100%;
+            margin-top: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:hover {
+            background: linear-gradient(135deg, #5a7cff 0%, #4a6cf7 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(74, 108, 247, 0.3);
+        }
+
+        .action-button:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: #888888;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .clear-button {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .clear-button:hover {
+            background: linear-gradient(135deg, #e4606d 0%, #dc3545 100%);
+            transform: translateY(-1px);
+        }
+
+        /* Status Display */
+        .status-display {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #cccccc;
+        }
+
+        .status-success {
+            color: #28a745;
+            background-color: rgba(40, 167, 69, 0.1);
+            border-color: rgba(40, 167, 69, 0.3);
+        }
+
+        .status-warning {
+            color: #ffc107;
+            background-color: rgba(255, 193, 7, 0.1);
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+
+        .status-error {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.3);
+            color: #dc3545;
+        }
+
+        /* Canvas adjustments */
+        .canvas-shifted {
+            left: 320px !important;
+            width: calc(100% - 320px) !important;
+        }
+
+        /* Viewport Info */
+        .viewport-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(42, 42, 42, 0.9);
+            color: #cccccc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 1500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .designer-panel {
+                position: fixed;
+                top: 60px;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: auto;
+                height: auto;
+                z-index: 1500;
+            }
+
+            #designCanvas {
+                display: none;
+            }
+        }
+
+        .input-group-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        /* Member Selection Info Styles */
+        .member-info-header {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .member-info-description {
+            color: #cccccc;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .member-info-properties {
+            font-size: 11px;
+            color: #cccccc;
+        }
+
+        .member-info-properties div {
+            margin-bottom: 4px;
+        }
+
+        .member-info-properties strong {
+            color: #ffffff;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            font-weight: 500;
+            color: #cccccc;
+            margin: 12px 0 8px 0;
+        }
+
+        /* Collapsible sections */
+        .section-title {
+            transition: all 0.2s ease;
+        }
+
+        .section-title:hover {
+            color: #ffffff;
+        }
+
+        #drawingToolsContent {
+            transition: all 0.3s ease;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Site Header -->
+    <div class="site-header">
+        <div class="header-left">
+            <div class="header-title-section">
+                <h1 class="header-title">3D Structure Designer</h1>
+                <p class="header-subtitle">CAD-style 3D modeling environment</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="/site-inspector" class="header-nav-btn">← Site Inspector</a>
+        </div>
+    </div>
+
+    <div id="designCanvas" class="canvas-shifted"></div>
+
+    <!-- Structure Designer Panel -->
+    <div class="designer-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">3D Designer</h2>
+            <p class="panel-subtitle">Design structures in a 3D CAD environment</p>
+        </div>
+
+        <div class="panel-content">
+            <!-- View Controls -->
+            <div class="control-section">
+                <div class="section-title">
+                    View Controls
+                </div>
+                <div class="section-description">
+                    Switch between different view modes and working planes
+                </div>
+
+                <div class="view-controls">
+                    <button id="view3DBtn" class="view-btn active">3D View</button>
+                    <button id="viewTopBtn" class="view-btn">Top (XY)</button>
+                    <button id="viewFrontBtn" class="view-btn">Front (XZ)</button>
+                    <button id="viewSideBtn" class="view-btn">Side (YZ)</button>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="gridSnapToggle" checked> Grid Snap
+                    </label>
+                </div>
+
+                <div class="status-display" id="viewStatus">
+                    3D View - Grid Snap: On
+                </div>
+            </div>
+
+            <!-- Drawing Tools -->
+            <div class="control-section">
+                <div class="section-title" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="toggleDrawingTools()">
+                    <span>✏️ Drawing Tools</span>
+                    <span id="drawingToolsToggle" style="font-size: 12px;">▼</span>
+                </div>
+                <div class="section-description">
+                    Sketch 2D geometry that can be extruded into 3D
+                </div>
+
+                <div id="drawingToolsContent">
+                    <div class="tool-grid">
+                        <button id="toolSelect" class="tool-btn active">Select</button>
+                        <button id="toolLine" class="tool-btn">Line</button>
+                        <button id="toolRect" class="tool-btn">Rectangle</button>
+                        <button id="toolCircle" class="tool-btn">Circle</button>
+                        <button id="toolPolygon" class="tool-btn">Polygon</button>
+                        <button id="toolMove" class="tool-btn">Move</button>
+                    </div>
+
+                    <button id="clearSketchBtn" class="clear-button">Clear Sketch</button>
+
+                    <div class="status-display" id="toolStatus">
+                        Select tool active
+                    </div>
+                </div>
+            </div>
+
+            <!-- Structural System Selection -->
+            <div class="control-section">
+                <div class="section-title">
+                    Structural System
+                </div>
+                <div class="section-description">
+                    Select the structural system type and configure parameters
+                </div>
+
+                <div class="input-group full-width">
+                    <label for="structuralSystemType">Structural System Type</label>
+                    <select id="structuralSystemType" class="input-field">
+                        <option value="rigid_frame" selected>Rigid Frame System</option>
+                        <option value="hybrid_core_frame">Hybrid Core + Frame System</option>
+                        <option value="portal_frame">Portal Frame System</option>
+                    </select>
+                </div>
+
+                <div class="input-group full-width">
+                    <label for="foundationType">Foundation Type</label>
+                    <select id="foundationType" class="input-field">
+                        <option value="concrete_slab" selected>Concrete Slab</option>
+                        <option value="pile_foundation">Pile Foundation</option>
+                        <option value="strip_footing">Strip Footing</option>
+                        <option value="pad_footing">Pad Footing</option>
+                    </select>
+                </div>
+
+                <!-- Rigid Frame System Parameters -->
+                <div id="rigidFrameParameters" style="display: block;">
+
+                <!-- Building Dimensions -->
+                <div class="section-subtitle">
+                    Building Dimensions
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="buildingLength">Building Length (m)</label>
+                        <input type="number" id="buildingLength" class="input-field" min="5" step="0.5" value="20">
+                    </div>
+                    <div class="input-group">
+                        <label for="buildingWidth">Building Width (m)</label>
+                        <input type="number" id="buildingWidth" class="input-field" min="5" step="0.5" value="10">
+                    </div>
+                </div>
+
+                <!-- Beam Selection -->
+                <div class="section-subtitle">
+                    Beam Selection
+                </div>
+                <div class="input-group">
+                    <label for="columnBeamSelect">Column Beam</label>
+                    <select id="columnBeamSelect" class="input-field">
+                        <option value="">Use default dimensions</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="frameBeamSelect">Frame Beam</label>
+                    <select id="frameBeamSelect" class="input-field">
+                        <option value="">Use default dimensions</option>
+                    </select>
+                </div>
+
+                <!-- Bay Spacing -->
+                <div class="section-subtitle">
+                    Bay Spacing
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="baySpacingX">Bay Size X (m)</label>
+                        <input type="number" id="baySpacingX" class="input-field" min="2" step="0.5" value="5">
+                    </div>
+                    <div class="input-group">
+                        <label for="baySpacingY">Bay Size Y (m)</label>
+                        <input type="number" id="baySpacingY" class="input-field" min="2" step="0.5" value="5">
+                    </div>
+                </div>
+
+                <!-- Column I-Beam Dimensions -->
+                <div class="section-subtitle">
+                    Column I-Beam Dimensions
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="columnDepth">Depth (m)</label>
+                        <input type="number" id="columnDepth" class="input-field" min="0.1" step="0.05" value="0.4">
+                    </div>
+                    <div class="input-group">
+                        <label for="columnWidth">Width (m)</label>
+                        <input type="number" id="columnWidth" class="input-field" min="0.1" step="0.05" value="0.4">
+                    </div>
+                    <div class="input-group">
+                        <label for="columnFlangeThickness">Flange Thickness (m)</label>
+                        <input type="number" id="columnFlangeThickness" class="input-field" min="0.01" step="0.01" value="0.06">
+                    </div>
+                    <div class="input-group">
+                        <label for="columnWebThickness">Web Thickness (m)</label>
+                        <input type="number" id="columnWebThickness" class="input-field" min="0.01" step="0.01" value="0.06">
+                    </div>
+                </div>
+
+                <!-- Beam I-Beam Dimensions -->
+                <div class="section-subtitle">
+                    Beam I-Beam Dimensions
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="beamDepth">Depth (m)</label>
+                        <input type="number" id="beamDepth" class="input-field" min="0.1" step="0.05" value="0.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="beamWidth">Width (m)</label>
+                        <input type="number" id="beamWidth" class="input-field" min="0.1" step="0.05" value="0.3">
+                    </div>
+                    <div class="input-group">
+                        <label for="beamFlangeThickness">Flange Thickness (m)</label>
+                        <input type="number" id="beamFlangeThickness" class="input-field" min="0.01" step="0.01" value="0.075">
+                    </div>
+                    <div class="input-group">
+                        <label for="beamWebThickness">Web Thickness (m)</label>
+                        <input type="number" id="beamWebThickness" class="input-field" min="0.01" step="0.01" value="0.075">
+                    </div>
+                </div>
+
+                <!-- Structure Parameters -->
+                <div class="section-subtitle">
+                    Structure Parameters
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="numStoreys">Number of Storeys</label>
+                        <input type="number" id="numStoreys" class="input-field" min="1" max="10" value="2">
+                    </div>
+                    <div class="input-group">
+                        <label for="storeyHeight">Storey Height (m)</label>
+                        <input type="number" id="storeyHeight" class="input-field" min="2" step="0.1" value="3.5">
+                    </div>
+                </div>
+
+                <button id="generateRigidFrameBtn" class="action-button" style="margin-top: 16px;">
+                    Generate Structure
+                </button>
+
+                <div class="status-display" id="rigidFrameStatus">
+                    Ready to generate structure
+                </div>
+                </div>
+
+                <!-- Hybrid Core + Frame System Parameters -->
+                <div id="hybridFrameParameters" style="display: none;">
+
+                <!-- Building Dimensions -->
+                <div class="section-subtitle">
+                    Building Dimensions
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="hybridBuildingLength">Building Length (m)</label>
+                        <input type="number" id="hybridBuildingLength" class="input-field" min="5" step="0.5" value="20">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridBuildingWidth">Building Width (m)</label>
+                        <input type="number" id="hybridBuildingWidth" class="input-field" min="5" step="0.5" value="10">
+                    </div>
+                </div>
+
+                <!-- Bay Spacing -->
+                <div class="section-subtitle">
+                    Bay Spacing
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="hybridBaySpacingX">Bay Size X (m)</label>
+                        <input type="number" id="hybridBaySpacingX" class="input-field" min="2" step="0.5" value="5">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridBaySpacingY">Bay Size Y (m)</label>
+                        <input type="number" id="hybridBaySpacingY" class="input-field" min="2" step="0.5" value="5">
+                    </div>
+                </div>
+
+                <!-- Core Configuration -->
+                <div class="section-subtitle">
+                    Core Configuration
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="hybridCoreWidth">Core Width (m)</label>
+                        <input type="number" id="hybridCoreWidth" class="input-field" min="1" step="0.5" value="3.0">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridCoreDepth">Core Depth (m)</label>
+                        <input type="number" id="hybridCoreDepth" class="input-field" min="1" step="0.5" value="3.0">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridCoreType">Core Type</label>
+                        <select id="hybridCoreType" class="input-field">
+                            <option value="hollow">Hollow</option>
+                            <option value="solid">Solid</option>
+                            <option value="u">U-shaped</option>
+                            <option value="l">L-shaped</option>
+                            <option value="coupled">Coupled</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridCoreWallThickness">Wall Thickness (m)</label>
+                        <input type="number" id="hybridCoreWallThickness" class="input-field" min="0.1" step="0.1" value="0.4">
+                    </div>
+                </div>
+                <div class="input-group full-width">
+                    <label for="coreType">Core Type</label>
+                    <select id="coreType" class="input-field">
+                        <option value="hollow" selected>Hollow Core</option>
+                        <option value="solid">Solid Core</option>
+                        <option value="u">U-Shaped Core</option>
+                        <option value="l">L-Shaped Core</option>
+                        <option value="coupled">Coupled Core</option>
+                    </select>
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="coreWidth">Core Width (m)</label>
+                        <input type="number" id="coreWidth" class="input-field" min="1" step="0.5" value="3">
+                    </div>
+                    <div class="input-group">
+                        <label for="coreDepth">Core Depth (m)</label>
+                        <input type="number" id="coreDepth" class="input-field" min="1" step="0.5" value="3">
+                    </div>
+                </div>
+                <div class="input-group full-width">
+                    <label for="coreWallThickness">Core Wall Thickness (m)</label>
+                    <input type="number" id="coreWallThickness" class="input-field" min="0.1" step="0.1" value="0.4">
+                </div>
+
+                <!-- Column I-Beam Dimensions -->
+                <div class="section-subtitle">
+                    Column I-Beam Dimensions
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="hybridColumnDepth">Depth (m)</label>
+                        <input type="number" id="hybridColumnDepth" class="input-field" min="0.1" step="0.05" value="0.3">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridColumnWidth">Width (m)</label>
+                        <input type="number" id="hybridColumnWidth" class="input-field" min="0.1" step="0.05" value="0.2">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridColumnFlangeThickness">Flange Thickness (m)</label>
+                        <input type="number" id="hybridColumnFlangeThickness" class="input-field" min="0.01" step="0.01" value="0.015">
+                    </div>
+                    <div class="input-group"><label for="hybridColumnWebThickness">Web Thickness (m)</label>
+                        <input type="number" id="hybridColumnWebThickness" class="input-field" min="0.01" step="0.01" value="0.01">
+                    </div>
+                </div>
+
+                <!-- Beam I-Beam Dimensions -->
+                <div class="section-subtitle">
+                    Beam I-Beam Dimensions
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="hybridBeamDepth">Depth (m)</label>
+                        <input type="number" id="hybridBeamDepth" class="input-field" min="0.1" step="0.05" value="0.4">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridBeamWidth">Width (m)</label>
+                        <input type="number" id="hybridBeamWidth" class="input-field" min="0.1" step="0.05" value="0.15">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridBeamFlangeThickness">Flange Thickness (m)</label>
+                        <input type="number" id="hybridBeamFlangeThickness" class="input-field" min="0.01" step="0.01" value="0.015">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridBeamWebThickness">Web Thickness (m)</label>
+                        <input type="number" id="hybridBeamWebThickness" class="input-field" min="0.01" step="0.01" value="0.01">
+                    </div>
+                </div>
+
+                <!-- Structure Parameters -->
+                <div class="section-subtitle">
+                    Structure Parameters
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="hybridNumStoreys">Number of Storeys</label>
+                        <input type="number" id="hybridNumStoreys" class="input-field" min="1" max="20" value="3">
+                    </div>
+                    <div class="input-group">
+                        <label for="hybridStoreyHeight">Storey Height (m)</label>
+                        <input type="number" id="hybridStoreyHeight" class="input-field" min="2" step="0.1" value="3.5">
+                    </div>
+                </div>
+
+                <button id="generateHybridFrameBtn" class="action-button" style="margin-top: 16px;">
+                    Generate Hybrid Structure
+                </button>
+
+                <div class="status-display" id="hybridFrameStatus">
+                    Ready to generate hybrid structure
+                </div>
+                </div>
+
+                <!-- Portal Frame System Parameters -->
+                <div id="portalFrameParameters" style="display: none;">
+
+                <!-- Portal Frame Dimensions -->
+                <div class="section-subtitle">
+                    Portal Frame Dimensions
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="portalSpan">Span (m)</label>
+                        <input type="number" id="portalSpan" class="input-field" min="10" step="0.5" value="20">
+                    </div>
+                    <div class="input-group">
+                        <label for="eaveHeight">Eave Height (m)</label>
+                        <input type="number" id="eaveHeight" class="input-field" min="3" step="0.1" value="6">
+                    </div>
+                    <div class="input-group">
+                        <label for="ridgeHeight">Ridge Height (m)</label>
+                        <input type="number" id="ridgeHeight" class="input-field" min="4" step="0.1" value="9">
+                    </div>
+                    <div class="input-group">
+                        <label for="portalSpacing">Portal Spacing (m)</label>
+                        <input type="number" id="portalSpacing" class="input-field" min="3" step="0.5" value="6">
+                    </div>
+                    <div class="input-group">
+                        <label for="numPortals">Number of Portals</label>
+                        <input type="number" id="numPortals" class="input-field" min="2" max="10" value="4">
+                    </div>
+                </div>
+
+                <!-- Portal Frame Member Sizes -->
+                <div class="section-subtitle">
+                    Member Sizes
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="portalBeamWidth">Beam Width (m)</label>
+                        <input type="number" id="portalBeamWidth" class="input-field" min="0.1" step="0.01" value="0.3">
+                    </div>
+                    <div class="input-group">
+                        <label for="portalBeamDepth">Beam Depth (m)</label>
+                        <input type="number" id="portalBeamDepth" class="input-field" min="0.2" step="0.01" value="0.6">
+                    </div>
+                    <div class="input-group">
+                        <label for="portalColumnWidth">Column Width (m)</label>
+                        <input type="number" id="portalColumnWidth" class="input-field" min="0.1" step="0.01" value="0.3">
+                    </div>
+                    <div class="input-group">
+                        <label for="portalColumnDepth">Column Depth (m)</label>
+                        <input type="number" id="portalColumnDepth" class="input-field" min="0.2" step="0.01" value="0.6">
+                    </div>
+                </div>
+
+                <!-- Secondary Members -->
+                <div class="section-subtitle">
+                    Secondary Members
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="purlinSpacing">Purlin Spacing (m)</label>
+                        <input type="number" id="purlinSpacing" class="input-field" min="0.5" step="0.1" value="1.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="girtSpacing">Girt Spacing (m)</label>
+                        <input type="number" id="girtSpacing" class="input-field" min="0.5" step="0.1" value="1.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="endColumnOffset">End Column Offset (m)</label>
+                        <input type="number" id="endColumnOffset" class="input-field" min="1" step="0.1" value="3.0">
+                    </div>
+                    <div class="input-group">
+                        <label for="addEndColumns">Add End Columns</label>
+                        <input type="checkbox" id="addEndColumns" class="input-field" checked>
+                    </div>
+                </div>
+
+                <button id="generatePortalFrameBtn" class="action-button" style="margin-top: 16px;">
+                    Generate Portal Structure
+                </button>
+
+                <div class="status-display" id="portalFrameStatus">
+                    Ready to generate portal structure
+                </div>
+                </div>
+            </div>
+
+            <!-- Slab Auto-Generation -->
+            <div class="control-section">
+                <div class="section-title">
+                    Slab Auto-Generation
+                </div>
+                <div class="section-description">
+                    Auto-generate slab based on structural system dimensions with custom offsets
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="slabXOffset">X Offset (m)</label>
+                        <input type="number" id="slabXOffset" class="input-field" min="0" step="0.1" value="1.0" disabled>
+                    </div>
+                    <div class="input-group">
+                        <label for="slabYOffset">Y Offset (m)</label>
+                        <input type="number" id="slabYOffset" class="input-field" min="0" step="0.1" value="1.0" disabled>
+                    </div>
+                </div>
+
+                <div class="input-group full-width">
+                    <label for="slabThickness">Slab Thickness (m)</label>
+                    <input type="number" id="slabThickness" class="input-field" min="0.1" step="0.05" value="0.25" disabled>
+                </div>
+
+                <button id="autoGenerateSlabBtn" class="action-button" disabled>Auto-Generate Slab</button>
+
+                <div class="status-display" id="slabGenerationStatus">
+                    Generate structure first
+                </div>
+            </div>
+
+            <!-- Member Selection -->
+            <div class="control-section">
+                <div class="section-title">
+                    🎯 Member Selection
+                </div>
+                <div class="section-description">
+                    Click on any 3D object to select and view its properties
+                </div>
+
+                <div id="selectedMemberInfo" class="status-display">
+                    No member selected - click on a 3D object to select
+                </div>
+            </div>
+
+            <!-- 3D Objects -->
+            <div class="control-section">
+                <div class="section-title">
+                    3D Objects
+                </div>
+
+                <div id="objectsList" class="status-display">
+                    No 3D objects created
+                </div>
+
+                <button id="exportModelBtn" class="action-button" disabled>Export Model</button>
+                <button id="autoFitCameraBtn" class="action-button" title="Auto-fit camera to show all objects">📐 Fit View</button>
+                <button id="clearAllObjectsBtn" class="clear-button">Clear All Objects</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Details Container -->
+    <div class="member-details-container" id="memberDetailsContainer" style="display: none;">
+        <div class="member-details-header">
+            <h3>Member Details</h3>
+            <button class="close-details-btn" id="closeMemberDetails">×</button>
+        </div>
+        <div class="member-details-content" id="memberDetailsContent">
+            <div class="member-detail-group">
+                <label>Member Type:</label>
+                <span id="memberType">-</span>
+            </div>
+            <div class="member-detail-group">
+                <label>Member ID:</label>
+                <span id="memberID">-</span>
+            </div>
+            <div class="member-detail-group">
+                <label>Designation:</label>
+                <span id="memberDesignation">-</span>
+            </div>
+            <div class="member-detail-group">
+                <label>Length/Height:</label>
+                <span id="memberLength">-</span>
+            </div>
+            <div class="member-detail-group">
+                <label>Orientation:</label>
+                <span id="memberOrientation">-</span>
+            </div>
+            <div class="member-detail-group">
+                <label>Cross Section:</label>
+                <span id="memberCrossSection">-</span>
+            </div>
+            <div class="member-detail-group">
+                <label>Dimensions:</label>
+                <span id="memberDimensions">-</span>
+            </div>
+        </div>
+        <div class="member-details-actions">
+            <button class="action-button" id="analyzeMemberBtn">
+                🔧 Analyse Member
+            </button>
+        </div>
+    </div>
+
+    <!-- Viewport Info -->
+    <div class="viewport-info" id="viewportInfo">
+        Coordinates: (0, 0, 0) | Camera: Perspective
+    </div>
+
+    <script>
+        // Function to toggle drawing tools visibility
+        function toggleDrawingTools() {
+            const content = document.getElementById('drawingToolsContent');
+            const toggle = document.getElementById('drawingToolsToggle');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▶';
+            }
+        }
+
+        // Function to handle structural system type changes
+        function handleStructuralSystemChange() {
+            const systemType = document.getElementById('structuralSystemType').value;
+            const rigidFrameParams = document.getElementById('rigidFrameParameters');
+            const hybridFrameParams = document.getElementById('hybridFrameParameters');
+
+            if (systemType === 'rigid_frame') {
+                rigidFrameParams.style.display = 'block';
+                hybridFrameParams.style.display = 'none';
+            } else if (systemType === 'hybrid_core_frame') {
+                rigidFrameParams.style.display = 'none';
+                hybridFrameParams.style.display = 'block';
+            }
+        }
+
+        // Initialize 3D Designer after all modules are loaded
+        function initializeStructureDesigner() {
+            console.log('[StructureDesigner] Starting initialization...');
+
+            let initializationAttempts = 0;
+            const maxAttempts = 100;
+
+            function attemptInitialization() {
+                try {
+                    initializationAttempts++;
+                    console.log(`[StructureDesigner] Initialization attempt ${initializationAttempts}/${maxAttempts}`);
+
+                    // Check if all required elements exist
+                    const designCanvas = document.getElementById('designCanvas');
+                    if (!designCanvas) {
+                        console.error('[StructureDesigner] Design canvas not found');
+                        if (initializationAttempts < maxAttempts) {
+                            setTimeout(attemptInitialization, 100);
+                            return;
+                        }
+                        throw new Error('Design canvas not found');
+                    }
+
+                    // Check if Three.js is loaded
+                    if (typeof THREE === 'undefined') {
+                        if (initializationAttempts < maxAttempts) {
+                            console.log('[StructureDesigner] Three.js not loaded yet, retrying...');
+                            setTimeout(attemptInitialization, 100);
+                            return;
+                        }
+                        throw new Error('Three.js library failed to load');
+                    }
+
+                    // Check if all required classes are available
+                    const requiredClasses = [
+                        'StructureDesigner3DCore',
+                        'StructureDesignerDrawing', 
+                        'StructureDesignerStructures',
+                        'StructureDesigner3D'
+                    ];
+
+                    const missingClasses = requiredClasses.filter(className => typeof window[className] === 'undefined');
+
+                    if (missingClasses.length > 0) {
+                        if (initializationAttempts < maxAttempts) {
+                            console.log(`[StructureDesigner] Missing classes: ${missingClasses.join(', ')}, retrying...`);
+                            setTimeout(attemptInitialization, 100);
+                            return;
+                        }
+                        throw new Error(`Missing required classes: ${missingClasses.join(', ')}`);
+                    }
+
+                    // All dependencies are loaded, create the instance
+                    console.log('[StructureDesigner] All dependencies loaded, creating StructureDesigner3D instance...');
+                    window.structureDesigner = new StructureDesigner3D();
+
+                    // Initialize the designer
+                    console.log('[StructureDesigner] Initializing StructureDesigner3D...');
+                    window.structureDesigner.initialize();
+
+                    console.log('[StructureDesigner] ✅ Successfully initialized StructureDesigner3D');
+
+                    // Setup additional event listeners
+                    setupAdditionalEventListeners();
+
+                } catch (error) {
+                    console.error('[StructureDesigner] Initialization failed:', error);
+
+                    // Show error in UI
+                    const rigidFrameStatus = document.getElementById('rigidFrameStatus');
+                    if (rigidFrameStatus) {
+                        rigidFrameStatus.textContent = `Error: ${error.message}`;
+                        rigidFrameStatus.className = 'status-display status-error';
+                    }
+
+                    // If not at max attempts, try again
+                    if (initializationAttempts < maxAttempts) {
+                        setTimeout(attemptInitialization, 200);
+                    }
+                }
+            }
+
+            // Start initialization
+            attemptInitialization();
+        }
+
+        function setupAdditionalEventListeners() {
+            // Add event listeners for new controls
+            const structuralSystemSelect = document.getElementById('structuralSystemType');
+            if (structuralSystemSelect) {
+                structuralSystemSelect.addEventListener('change', handleStructuralSystemChange);
+            }
+
+            const foundationTypeSelect = document.getElementById('foundationType');
+            if (foundationTypeSelect) {
+                foundationTypeSelect.addEventListener('change', function() {
+                    console.log('Foundation type changed to:', this.value);
+                    // Foundation type handling can be implemented here
+                });
+            }
+
+            // Initialize the structural system display
+            handleStructuralSystemChange();
+        }
+
+        // Wait for DOM to be ready, then wait a bit more for script loading to complete
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[StructureDesigner] DOM loaded, waiting for script loading to complete...');
+            // Give more time for the sequential script loading to complete
+            setTimeout(initializeStructureDesigner, 1000);
+        });
+    </script>
+</body>
+</html>

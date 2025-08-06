@@ -1,0 +1,2293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team - EngineRoom</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='ER Logo_1749447115584.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adam-chat-widget.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 0 0 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .menu-section {
+            margin-bottom: 2rem;
+        }
+
+        .menu-title {
+            color: #a0aec0;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: #f7fafc;
+            color: #1a202c;
+        }
+
+        .menu-item.active {
+            background: #edf2f7;
+            color: #547bf7;
+            border-left-color: #547bf7;
+        }
+
+        .menu-item .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-item .badge {
+            background: #48bb78;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 12px;
+            margin-left: auto;
+        }
+
+        #teamMenuText {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 140px;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1.2;
+            font-size: inherit;
+        }
+
+        /* Team menu item specific styling */
+        .menu-item#teamMenuItem {
+            position: relative;
+        }
+
+        .menu-item#teamMenuItem .team-name-wrapper {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* User Profile */
+        .user-profile {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: auto;
+        }
+
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .user-dropdown-toggle:hover {
+            background: #f7fafc;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 0.875rem;
+        }
+
+        .user-email {
+            font-size: 0.75rem;
+            color: #718096;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 150px;
+        }
+
+        /* User Dropdown Menu */
+        .user-dropdown-menu {
+            position: fixed;
+            bottom: 20px;
+            left: 260px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .user-dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .user-dropdown-menu .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .user-dropdown-menu .dropdown-item:hover {
+            background: #f7fafc;
+            color: #1a202c;
+        }
+
+        .user-dropdown-menu .dropdown-item.logout {
+            color: #e53e3e;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 4px;
+        }
+
+        .user-dropdown-menu .dropdown-item.logout:hover {
+            background: #fed7d7;
+        }
+
+        .user-dropdown-menu .dropdown-item .icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-left h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-left h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin: 0.5rem 0 0.25rem 0;
+        }
+
+        .header-left p {
+            color: #718096;
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-settings {
+            background: #f8fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-settings:hover {
+            background: #edf2f7;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Team Management */
+        .team-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .team-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }        .team-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .team-tab {
+            color: #718096;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .team-tab.active {
+            color: #547bf7;
+            border-bottom-color: #547bf7;
+        }
+
+        .team-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            width: 300px;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            background: transparent;
+            flex: 1;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        .search-box input::placeholder {
+            color: #a0aec0;
+        }
+
+        .filter-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        /* Table */
+        .members-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .team-container {
+            overflow: visible;
+        }
+
+        .members-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .members-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .member-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .member-info h4 {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+
+        .member-info span {
+            color: #718096;
+            font-size: 0.875rem;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .role-owner {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+            color: #744210;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background: #edf2f7;
+            color: #2d3748;
+        }
+
+        .role-member {
+            background: #e6fffa;
+            color: #065f46;
+        }
+
+        .role-guest {
+            background: #fef5e7;
+            color: #744210;
+        }
+
+        .role-pending {
+            background: #fef5e7;
+            color: #d69e2e;
+        }
+
+        .role-accepted {
+            background: #e6fffa;
+            color: #065f46;
+        }
+
+        .table-container {
+            display: block;
+        }
+
+        .status-online {
+            color: #48bb78;
+            font-weight: 500;
+        }
+
+        .status-offline {
+            color: #718096;
+        }
+
+        .actions-menu {
+            position: relative;
+        }
+
+        .actions-button {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .actions-button:hover {
+            background: #f7fafc;
+        }
+
+        .actions-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem 0;
+            min-width: 150px;
+            z-index: 9999;
+            display: none;
+        }
+
+        .actions-dropdown.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .dropdown-item:hover {
+            background: #f7fafc;
+        }
+
+        .dropdown-item.danger {
+            color: #e53e3e;
+        }
+
+        .dropdown-item.danger:hover {
+            background: #fed7d7;
+        }
+
+        /* Role Edit Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.show .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #718096;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #f7fafc;
+            color: #1a202c;
+        }
+
+        .user-info-modal {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .user-avatar-modal {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-details-modal h4 {
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .user-details-modal span {
+            color: #718096;
+            font-size: 0.875rem;
+        }
+
+        .current-role-badge {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .current-role-value {
+            padding: 0.375rem 1rem;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(84, 123, 247, 0.3);
+        }
+
+        .role-selection {
+            margin-bottom: 2rem;
+        }
+
+        .role-selection h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0 0 1rem 0;
+        }
+
+        .role-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .role-option:hover {
+            border-color: #cbd5e0;
+            background: #f8fafc;
+        }
+
+        .role-option.selected {
+            border-color: #547bf7;
+            background: #edf2f7;
+        }
+
+        .role-radio {
+            margin-top: 0.125rem;
+            width: 18px;
+            height: 18px;
+            accent-color: #547bf7;
+        }
+
+        .role-details h4 {
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .role-details p {
+            color: #718096;
+            font-size: 0.875rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #edf2f7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .add-member-form {
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .form-group small {
+            display: block;
+            color: #718096;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Toast Notification Styles */
+        .toast-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 300px;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toast-notification:hover {
+            transform: translateX(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast-notification.success {
+            border-left: 4px solid #4caf50;
+            color: #333333;
+        }
+
+        .toast-notification.error {
+            border-left: 4px solid #f44336;
+            color: #333333;
+        }
+
+        .toast-notification.warning {
+            border-left: 4px solid #ff9800;
+            color: #333333;
+        }
+
+        .toast-notification.info {
+            border-left: 4px solid #2196f3;
+            color: #333333;
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-icon.success { color: #4caf50; }
+        .toast-icon.error { color: #f44336; }
+        .toast-icon.warning { color: #ff9800; }
+        .toast-icon.info { color: #2196f3; }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-close {
+            color: #888888;
+            font-size: 16px;
+            font-weight: 600;
+            flex-shrink: 0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333333;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .team-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .modal {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+
+            .toast-notification {
+                top: 20px;
+                right: 20px;
+                left: 20px;
+                min-width: auto;
+                max-width: none;
+            }
+        }
+
+        .add-member-form {
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .form-group small {
+            display: block;
+            color: #718096;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .invitation-divider {
+            text-align: center;
+            margin: 24px 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .invitation-divider::before,
+        .invitation-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+```text
+
+        .invitation-link-section {
+            margin-top: 20px;
+        }
+
+        .invitation-link-label {
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .invitation-link-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .invitation-link-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background-color: #f7fafc;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .invitation-link-input:focus {
+            outline: none;
+            border-color: #4f7cff;
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+        }
+    .online-chip {
+        background-color: #4CAF50;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-left: 5px;
+    }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">ER</div>
+            <span class="logo-text">EngineRoom</span>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">Menu</div>
+            <a href="/dashboard" class="menu-item">
+                <div class="icon">📋</div>
+                Projects
+                <div class="badge" id="projectCounter">0</div>
+            </a>
+            <a href="/team" class="menu-item active" id="teamMenuItem">
+                <div class="icon">👥</div>
+                <div class="team-name-wrapper">
+                    <span id="teamMenuText">Team</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">General</div>
+            <a href="/blueprints" class="menu-item">
+                <div class="icon">🗂️</div>
+                Blueprints
+            </a>
+            <a href="/toolshop" class="menu-item">
+                <div class="icon">🛠️</div>
+                Tool Shop
+            </a>
+        </div>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="user-dropdown-toggle" id="userProfileDropdownToggle">
+                    <div class="user-avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {% else %}
+                            {{ user.username[0].upper() if user else 'U' }}
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ team_members[0].first_name if team_members and team_members[0].first_name else (user.username if user else 'Guest') }}</div>
+                        <div class="user-email">{{ team_members[0].email if team_members and team_members[0].email else 'user@engineroom.com' }}</div>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <h1 id="teamPageTitle">{{ team_name or 'Your Team' }}</h1>
+                <p>Manage your team members and their permissions</p>
+            </div>
+            <div class="header-actions">
+                {% if user.role == 'owner' or user.role == 'admin' %}
+                <button class="btn btn-settings" onclick="openTeamSettingsModal()" title="Team Settings">
+                    ⚙️
+                </button>
+                {% endif %}
+                <button class="btn btn-primary" onclick="addMember()">
+                    + Add
+                </button>
+            </div>
+        </div>
+
+        <div class="team-container">
+            <div class="team-header">
+                <div class="team-tabs">
+                    <div class="team-tab active" onclick="switchTab('members')">Members</div>
+                    <div class="team-tab" onclick="switchTab('invites')">Invites</div>
+                </div>
+
+                <div class="team-actions">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search by name, email, or username" id="memberSearch">
+                        <span>🔍</span>
+                    </div>
+                    <div class="filter-dropdown">
+                        <span>Filter by role</span>
+                        <span>▼</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Table -->
+            <div id="membersTable" class="table-container">
+                <table class="members-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Last Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersTableBody">
+                        {% if team_members %}
+                            {% for member in team_members %}
+                            <tr data-member-id="{{ member.id }}">
+                                <td>
+                                    <div class="member-profile">
+                                        <div class="member-avatar">
+                            {% if member.profile_picture %}
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + member.profile_picture.split('/')[-1]) }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            {% else %}
+                                {{ member.first_name[0].upper() if member.first_name else member.username[0].upper() }}
+                            {% endif %}
+                        </div>
+                                        <div class="member-info">
+                                            <h4>{{ member.first_name + ' ' + (member.last_name or '') if member.first_name else member.username }}</h4>
+                                            <span>@{{ member.username }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ member.email or 'No email provided' }}</td>
+                                <td><span class="role-badge role-{{ member.role or 'member' }}">{{ (member.role or 'member').title() }}</span></td>
+                                <td>
+                                    <span class="status-{{ 'online' if member.is_online else 'offline' }}">
+                                        {{ 'Online' if member.is_online else 'Offline' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="actions-menu">
+                                        <button class="actions-button" onclick="toggleActionsMenu(this)">
+                                            <span>⋮</span>
+                                        </button>
+                                        <div class="actions-dropdown">
+                                            {% if (user.role == 'owner' or user.role == 'admin') and member.id != user.id and member.role != 'owner' %}
+                                            <div class="dropdown-item" onclick="openRoleEditModal('{{ member.id }}', '{{ member.first_name + ' ' + (member.last_name or '') if member.first_name else member.username }}', '@{{ member.username }}', '{{ member.role or 'member' }}')">Edit Role</div>
+                                            {% endif %}
+                                            <div class="dropdown-item">View Profile</div>
+                                            {% if member.id != user.id and member.role != 'owner' and (user.role == 'owner' or user.role == 'admin') %}
+                                            <div class="dropdown-item danger">Remove</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: #718096;">
+                                    No team members found. Add members to get started.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Invites Table -->
+            <div id="invitesTable" class="table-container" style="display: none;">
+                <table class="members-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Invited By</th>
+                            <th>Invited At</th>
+                            <th>Invite Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invitesTableBody">
+                        {% if team_invitations %}
+                            {% for invitation in team_invitations %}
+                            <tr data-invite-id="{{ invitation.id }}">
+                                <td>
+                                    <div class="member-profile">
+                                        <div class="member-avatar">{{ invitation.email[0].upper() }}</div>
+                                        <div class="member-info">
+                                            <h4>{{ invitation.email }}</h4>
+                                            <span>Invited user</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ invitation.invited_by }}</td>
+                                <td>{{ invitation.created_at }}</td>
+                                <td><span class="role-badge role-pending">{{ invitation.status.title() }}</span></td>
+                                <td>
+                                    <div class="actions-menu">
+                                        <button class="actions-button" onclick="toggleActionsMenu(this)">
+                                            <span>⋮</span>
+                                        </button>
+                                        <div class="actions-dropdown">
+                                            <div class="dropdown-item" onclick="resendInvite('{{ invitation.id }}')">Resend Invite</div>
+                                            <div class="dropdown-item danger" onclick="cancelInvite('{{ invitation.id }}')">Cancel Invite</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: #718096;">
+                                    No pending invitations. Send invitations to add team members.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div class="modal-overlay" id="addMemberModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Add team member</h2>
+                <button class="modal-close" onclick="closeAddMemberModal()">×</button>
+            </div>
+
+            <div class="add-member-form">
+                    <div class="form-group">
+                        <label for="memberEmail">Email address</label>
+                        <input type="email" id="memberEmail" placeholder="Enter email address" required>
+                        <small>We'll send an invitation to this email address</small>
+                    </div>
+
+                    <div class="invitation-divider">
+                        <span>or</span>
+                    </div>
+
+                    <div class="invitation-link-section">
+                        <div class="invitation-link-label">Share invitation link</div>
+                        <div class="invitation-link-container">
+                            <input type="text" id="invitationLink" class="invitation-link-input" readonly placeholder="Invitation link will appear here">
+                            <button type="button" class="btn btn-secondary" onclick="copyInvitationLink()" id="copyLinkBtn" disabled style="padding: 8px 16px; white-space: nowrap;">
+                                Copy Link
+                            </button>
+                        </div>
+                        <small>Share this link with the person you want to invite. They can use it in their signup process to join the team.</small>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeAddMemberModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="sendInvitation()">Send invitation</button>
+                </div>
+        </div>
+    </div>
+
+    <!-- Role Edit Modal -->
+    <div class="modal-overlay" id="roleEditModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit user role</h2>
+                <button class="modal-close" onclick="closeRoleEditModal()">×</button>
+            </div>
+
+            <div class="user-info-modal" id="modalUserInfo">
+                <div class="user-avatar-modal" id="modalUserAvatar">U</div>
+                <div class="user-details-modal">
+                    <h4 id="modalUserName">User Name</h4>
+                    <span id="modalUserUsername">@username</span>
+                </div>
+                <div class="current-role-badge">
+                    <span class="current-role-value" id="currentRoleValue">Admin</span>
+                </div>
+            </div>
+
+            <div class="role-selection">
+                <h3>Select role</h3>
+
+                <label class="role-option" for="ownerRole" id="ownerRoleOption" style="display: none;">
+                    <input type="radio" name="userRole" value="owner" id="ownerRole" class="role-radio">
+                    <div class="role-details">
+                        <h4>Owner</h4>
+                        <p>Owner has complete control over the team and can transfer ownership. Only one owner per team.</p>
+                    </div>
+                </label>
+
+                <label class="role-option" for="adminRole">
+                    <input type="radio" name="userRole" value="admin" id="adminRole" class="role-radio">
+                    <div class="role-details">
+                        <h4>Admin</h4>
+                        <p>Admins have full administrative access to organisation settings and all resources.</p>
+                    </div>
+                </label>
+
+                <label class="role-option" for="memberRole">
+                    <input type="radio" name="userRole" value="member" id="memberRole" class="role-radio">
+                    <div class="role-details">
+                        <h4>Member</h4>
+                        <p>Members can see all other members, and can create Apps and Projects.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeRoleEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRoleChanges()">Save changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Settings Modal -->
+    <div class="modal-overlay" id="teamSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Team Settings</h2>
+                <button class="modal-close" onclick="closeTeamSettingsModal()">×</button>
+            </div>
+
+            <form id="teamSettingsForm">
+                <div class="form-group">
+                    <label for="editTeamName">Team Name</label>
+                    <input type="text" id="editTeamName" name="editTeamName" required placeholder="Enter team name">
+                </div>
+
+                <div class="form-group">
+                    <label for="editTeamSize">Expected Team Size</label>
+                    <select id="editTeamSize" name="editTeamSize" required>
+                        <option value="">Select team size</option>
+                        <option value="2-5">2-5 members</option>
+                        <option value="6-10">6-10 members</option>
+                        <option value="11-25">11-25 members</option>
+                        <option value="26+">26+ members</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+
+            {% if user.role == 'owner' or user.role == 'admin' %}
+            <div style="border-top: 1px solid #e2e8f0; margin-top: 2rem; padding-top: 2rem;">
+                <h3 style="color: #e53e3e; font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Danger Zone</h3>
+                <p style="color: #718096; font-size: 0.875rem; margin-bottom: 1rem;">
+                    Deleting your team will permanently remove all team data, member access, and cannot be undone.
+                </p>
+                <button type="button" class="btn" style="background: #e53e3e; color: white; border-color: #e53e3e;" onclick="showDeleteTeamConfirmation()">
+                    Delete Team
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmationModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="confirmationTitle">Confirm Action</h2>
+                <button class="modal-close" onclick="closeConfirmationModal()">×</button>
+            </div>
+
+            <div class="modal-body" style="padding: 1rem 0;">
+                <p id="confirmationMessage">Are you sure you want to proceed?</p>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
+                <button class="btn btn-primary" id="confirmationButton" style="background: #e53e3e; border-color: #e53e3e;" onclick="executeConfirmedAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Team Confirmation Modal -->
+    <div class="modal-overlay" id="deleteTeamConfirmationModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #1a202c; margin: 0; display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">!</div>
+                    Delete Team
+                </h3>
+                <button class="modal-close" onclick="closeDeleteTeamConfirmation()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: all 0.2s ease;">×</button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <p style="color: #4a5568; font-size: 1rem; margin: 0 0 1rem 0; line-height: 1.5;">
+                    This action will permanently delete your team and cannot be undone. This will:
+                </p>
+                <div style="background: #fed7d7; border: 1px solid #feb2b2; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <div style="color: #9b2c2c; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Warning: This action is permanent</div>
+                    <div style="color: #9b2c2c; font-size: 0.875rem; line-height: 1.4;">
+                        • Remove all team members<br>
+                        • Delete all team data and settings<br>
+                        • Remove access to team projects<br>
+                        • Reset all member roles to individual accounts
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button onclick="closeDeleteTeamConfirmation()" style="padding: 0.75rem 1.5rem; background: #f8fafc; color: #4a5568; border: 1px solid #e2e8f0; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                    Cancel
+                </button>
+                <button onclick="executeDeleteTeam()" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                    Yes, Delete Team
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let confirmationCallback = null;
+
+        function showConfirmationModal(title, message, buttonText, callback) {
+            document.getElementById('confirmationTitle').textContent = title;
+            document.getElementById('confirmationMessage').textContent = message;
+            document.getElementById('confirmationButton').textContent = buttonText;
+            confirmationCallback = callback;
+            document.getElementById('confirmationModal').classList.add('show');
+        }
+
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').classList.remove('show');
+            confirmationCallback = null;
+        }
+
+        function executeConfirmedAction() {
+            if (confirmationCallback) {
+                confirmationCallback();
+            }
+            closeConfirmationModal();
+        }
+
+        // Team Settings Modal Functions
+        function openTeamSettingsModal() {
+            // Load current team data
+            fetch('/api/get-team-details')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('editTeamName').value = data.team.name || '';
+                        document.getElementById('editTeamSize').value = data.team.size_range || '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading team details:', error);
+                    // Show modal anyway with empty values
+                });
+
+            document.getElementById('teamSettingsModal').classList.add('show');
+        }
+
+        function closeTeamSettingsModal() {
+            document.getElementById('teamSettingsModal').classList.remove('show');
+            // Clear form
+            document.getElementById('teamSettingsForm').reset();
+        }
+
+        function showDeleteTeamConfirmation() {
+            document.getElementById('deleteTeamConfirmationModal').classList.add('show');
+        }
+
+        function closeDeleteTeamConfirmation() {
+            document.getElementById('deleteTeamConfirmationModal').classList.remove('show');
+        }
+
+        function executeDeleteTeam() {
+            closeDeleteTeamConfirmation();
+            deleteTeam();
+        }
+
+        function confirmDeleteTeam() {
+            showDeleteTeamConfirmation();
+        }
+
+        function deleteTeam() {
+            fetch('/api/delete-team', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToastNotification('Team deleted successfully. Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 2000);
+                } else {
+                    showToastNotification('Error deleting team: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToastNotification('Error deleting team. Please try again.', 'error');
+            });
+        }
+
+        // Team Settings Form Submission
+        document.getElementById('teamSettingsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('editTeamName').value.trim(),
+                size_range: document.getElementById('editTeamSize').value
+            };
+
+            if (!formData.name) {
+                showToastNotification('Team name is required', 'warning');
+                return;
+            }
+
+            if (!formData.size_range) {
+                showToastNotification('Please select a team size', 'warning');
+                return;
+            }
+
+            fetch('/api/update-team-details', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update both the page title and sidebar with new team name
+                    updateTeamPageTitle(formData.name);
+                    updateTeamNameInSidebar(formData.name);
+
+                    // Also refresh the team name from server to ensure consistency
+                    setTimeout(fetchTeamNameAndUpdateUI, 500);
+
+                    showToastNotification('Team settings updated successfully', 'success');
+                    closeTeamSettingsModal();
+                } else {
+                    showToastNotification('Error updating team settings: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToastNotification('Error updating team settings. Please try again.', 'error');
+            });
+        });
+
+        function toggleActionsMenu(button) {
+            const dropdown = button.nextElementSibling;
+            const isVisible = dropdown.classList.contains('show');
+
+            // Close all dropdowns
+            document.querySelectorAll('.actions-dropdown').forEach(d => d.classList.remove('show'));
+
+            // Toggle current dropdown
+            if (!isVisible) {
+                dropdown.classList.add('show');
+            }
+        }
+
+        let currentEditingUserId = null;
+
+        function addMember() {
+            document.getElementById('addMemberModal').classList.add('show');
+
+            // Generate invitation link immediately when modal opens
+            generateInvitationLink();
+
+            // Focus on email input after modal animation
+            setTimeout(() => {
+                document.getElementById('memberEmail').focus();
+            }, 300);
+        }
+
+        function closeAddMemberModal() {
+            document.getElementById('addMemberModal').classList.remove('show');
+            // Clear the email input and invitation link
+            document.getElementById('memberEmail').value = '';
+            document.getElementById('invitationLink').value = '';
+            document.getElementById('copyLinkBtn').disabled = true;
+        }
+
+        function showToastNotification(message, type = 'info', duration = 5000) {
+            // Remove any existing notifications
+            const existingNotifications = document.querySelectorAll('.toast-notification');
+            existingNotifications.forEach(notification => {
+                notification.style.animation = 'toastSlideOut 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            });
+
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `toast-notification ${type}`;
+
+            // Set icon based on type
+            let icon = '💬';
+            switch (type) {
+                case 'success':
+                    icon = '✅';
+                    break;
+                case 'error':
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    icon = '⚠️';
+                    break;
+                case 'info':
+                    icon = 'ℹ️';
+                    break;
+            }
+
+            notification.innerHTML = `
+                <div class="toast-icon ${type}">${icon}</div>
+                <div class="toast-content">${message}</div>
+                <div class="toast-close">×</div>
+            `;
+
+            // Add to page
+            document.body.appendChild(notification);
+
+            // Auto-remove after duration
+            const autoRemove = setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'toastSlideOut 0.3s ease forwards';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, duration);
+
+            // Click to close
+            notification.addEventListener('click', () => {
+                clearTimeout(autoRemove);
+                notification.style.animation = 'toastSlideOut 0.3s ease forwards';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            });
+        }
+
+        function sendInvitation() {
+            const email = document.getElementById('memberEmail').value.trim();
+
+            if (!email) {
+                showToastNotification('Please enter an email address', 'warning');
+                return;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showToastNotification('Please enter a valid email address', 'warning');
+                return;
+            }
+
+            // Send invitation via API
+            fetch('/api/send-team-invitation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToastNotification('Invitation sent successfully to ' + email, 'success');
+
+                    // Generate and display invitation link
+                    if (data.invitation_token) {
+                        const baseUrl = window.location.origin;
+                        const invitationLink = `${baseUrl}/signup-step2?invite=${data.invitation_token}`;
+
+                        document.getElementById('invitationLink').value = invitationLink;
+                        document.getElementById('copyLinkBtn').disabled = false;
+
+                        showToastNotification('Invitation link generated and ready to share', 'info');
+                    }
+
+                    // Add the new invitation to the invites table
+                    addInvitationToTable(data.invite_id, email);
+                } else {
+                    showToastNotification('Error sending invitation: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToastNotification('Error sending invitation. Please try again.', 'error');
+            });
+        }
+
+        function addInvitationToTable(inviteId, email) {
+            const invitesTableBody = document.getElementById('invitesTableBody');
+
+            // Check if there's a "no invitations" message row and remove it
+            const noInvitesRow = invitesTableBody.querySelector('td[colspan="5"]');
+            if (noInvitesRow) {
+                noInvitesRow.closest('tr').remove();
+            }
+
+            // Create new invitation row
+            const newRow = document.createElement('tr');
+            newRow.setAttribute('data-invite-id', inviteId);
+
+            // Get current date for "Invited At" column
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+
+            newRow.innerHTML = `
+                <td>
+                    <div class="member-profile">
+                        <div class="member-avatar">${email[0].upper()}</div>
+                        <div class="member-info">
+                            <h4>${email}</h4>
+                            <span>Invited user</span>
+                        </div>
+                    </div>
+                </td>
+                <td>Admin</td>
+                <td>${formattedDate}</td>
+                <td><span class="role-badge role-pending">Pending</span></td>
+                <td>
+                    <div class="actions-menu">
+                        <button class="actions-button" onclick="toggleActionsMenu(this)">
+                            <span>⋮</span>
+                        </button>
+                        <div class="actions-dropdown">
+                            <div class="dropdown-item" onclick="resendInvite('${inviteId}')">Resend Invite</div>
+                            <div class="dropdown-item danger" onclick="cancelInvite('${inviteId}')">Cancel Invite</div>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            // Add the new row at the top of the table
+            invitesTableBody.insertBefore(newRow, invitesTableBody.firstChild);
+        }
+
+        function openRoleEditModal(userId, userName, username, currentRole) {
+            currentEditingUserId = userId;
+
+            // Update modal user info
+            document.getElementById('modalUserName').textContent = userName;
+            document.getElementById('modalUserUsername').textContent = username;
+            document.getElementById('modalUserAvatar').textContent = userName.charAt(0).toUpperCase();
+
+            // Set current role badge
+            document.getElementById('currentRoleValue').textContent = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
+
+            // Show/hide owner role option based on current user's role
+            const ownerRoleOption = document.getElementById('ownerRoleOption');
+            const currentUserRole = '{{ user.role if user else 'member' }}';
+
+            if (currentUserRole === 'owner') {
+                ownerRoleOption.style.display = 'block';
+            } else {
+                ownerRoleOption.style.display = 'none';
+            }
+
+            // Set current role
+            const roleRadio = document.querySelector(`input[name="userRole"][value="${currentRole}"]`);
+            if (roleRadio) {
+                roleRadio.checked = true;
+                roleRadio.closest('.role-option').classList.add('selected');
+            }
+
+            // Show modal
+            document.getElementById('roleEditModal').classList.add('show');
+        }
+
+        function closeRoleEditModal() {
+            document.getElementById('roleEditModal').classList.remove('show');
+            currentEditingUserId = null;
+
+            // Clear selections
+            document.querySelectorAll('.role-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelectorAll('input[name="userRole"]').forEach(radio => {
+                radio.checked = false;
+            });
+        }
+
+        function saveRoleChanges() {
+            if (!currentEditingUserId) return;
+
+            const selectedRole = document.querySelector('input[name="userRole"]:checked');
+            if (!selectedRole) {
+                showToastNotification('Please select a role', 'warning');
+                return;
+            }
+
+            // Special handling for owner role transfer
+            if (selectedRole.value === 'owner') {
+                showConfirmationModal(
+                    'Transfer Ownership',
+                    'Are you sure you want to transfer ownership? You will become an admin and lose owner privileges.',
+                    'Transfer Ownership',
+                    () => {
+                        updateUserRole(currentEditingUserId, selectedRole.value);
+                    }
+                );
+                return;
+            }
+
+            updateUserRole(currentEditingUserId, selectedRole.value);
+        }
+
+        function updateUserRole(userId, newRole) {
+            // Make API call to update the user's role
+            fetch('/api/update-user-role', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    role: newRole
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // If owner role was transferred, reload the page to reflect changes
+                    if (newRole === 'owner') {
+                        showToastNotification('Ownership transferred successfully. Reloading page...', 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                        return;
+                    }
+
+                    // Update the role in the table
+                    const memberRow = document.querySelector(`tr[data-member-id="${userId}"]`);
+                    if (memberRow) {
+                        const roleBadge = memberRow.querySelector('.role-badge');
+                        if (roleBadge) {
+                            roleBadge.textContent = newRole.charAt(0).toUpperCase() + newRole.slice(1);
+                            roleBadge.className = `role-badge role-${newRole}`;
+                        }
+                    }
+                    showToastNotification('Role updated successfully', 'success');
+                    closeRoleEditModal();
+                } else {
+                    showToastNotification('Error updating role: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToastNotification('Error updating role. Please try again.', 'error');
+            });
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.actions-menu')) {
+                document.querySelectorAll('.actions-dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        // Search functionality
+        document.getElementById('memberSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#membersTableBody tr');
+
+            rows.forEach(row => {
+                const name = row.querySelector('.member-info h4').textContent.toLowerCase();
+                const username = row.querySelector('.member-info span').textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+
+                const isMatch = name.includes(searchTerm) || 
+                              username.includes(searchTerm) || 
+                              email.includes(searchTerm);
+
+                row.style.display = isMatch ? '' : 'none';
+            });
+        });
+
+        // User profile dropdown functionality
+        const userProfileDropdownToggle = document.querySelector('.user-dropdown-toggle');
+        const userProfileDropdownMenu = document.createElement('div');
+        userProfileDropdownMenu.className = 'user-dropdown-menu';
+        userProfileDropdownMenu.innerHTML = `
+            <a href="/dashboard-settings" class="dropdown-item">
+                <div class="icon">⚙️</div>
+                Settings
+            </a>
+            <button onclick="handleLogout()" class="dropdown-item logout">
+                <div class="icon">🚪</div>
+                Logout
+            </button>
+        `;
+
+        if (userProfileDropdownToggle) {
+            // Insert dropdown menu after the user profile section
+            const userProfile = document.querySelector('.user-profile');
+            userProfile.appendChild(userProfileDropdownMenu);
+
+            userProfileDropdownToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('[Team] Toggling user profile dropdown');
+                userProfileDropdownToggle.classList.toggle('active');
+                userProfileDropdownMenu.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userProfileDropdownToggle.contains(e.target) && 
+                    !userProfileDropdownMenu.contains(e.target)) {
+                    userProfileDropdownToggle.classList.remove('active');
+                    userProfileDropdownMenu.classList.remove('show');
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside
+            userProfileDropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        // Role option selection handling
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
+
+                // Add selected class to clicked option
+                this.classList.add('selected');
+
+                // Check the radio button
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                }
+            });
+        });
+
+        // Close modals when clicking outside
+        document.getElementById('roleEditModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRoleEditModal();
+            }
+        });
+
+        document.getElementById('addMemberModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddMemberModal();
+            }
+        });
+
+        document.getElementById('confirmationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeConfirmationModal();
+            }
+        });
+
+        document.getElementById('teamSettingsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTeamSettingsModal();
+            }
+        });
+
+        // Load and update project counter
+        updateProjectCounter();
+
+        // Function to update project counter
+        function updateProjectCounter() {
+            fetch('/api/get-user-projects')
+                .then(response => response.json())
+                .then(data => {
+                    const projectCounter = document.getElementById('projectCounter');
+                    if (projectCounter && data.success && data.projects) {
+                        projectCounter.textContent = data.projects.length;
+                    } else if (projectCounter) {
+                        projectCounter.textContent = '0';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading project count:', error);
+                    const projectCounter = document.getElementById('projectCounter');
+                    if (projectCounter) {
+                        projectCounter.textContent = '0';
+                    }
+                });
+        }
+
+        // Function to update team menu name dynamically
+        function updateTeamMenuName() {
+            fetch('/api/get-team-name')
+                .then(response => response.json())
+                .then(data => {
+                    const teamMenuText = document.getElementById('teamMenuText');
+                    if (teamMenuText && data && data.team_name) {
+                        teamMenuText.textContent = data.team_name;
+                        teamMenuText.title = data.team_name; // Show full name on hover
+                        console.log('Team menu text updated to:', data.team_name);
+                    } else {
+                        console.log('No team name found in response');
+                    }
+                })
+                .catch(error => {
+                    console.log('Could not load team name:', error);
+                });
+        }
+
+        // Function to intelligently handle team name display
+        function updateTeamMenuNameWithTeamName(teamName) {
+            const teamMenuText = document.getElementById('teamMenuText');
+            const teamMenuItem = document.querySelector('a[href="/team"]');
+
+            if (teamName && teamMenuText) {
+                // Set the full name
+                teamMenuText.textContent = teamName;
+                teamMenuText.title = teamName; // Always show full name on hover
+
+                // Apply consistent styling
+                teamMenuText.style.overflow = 'hidden';
+                teamMenuText.style.textOverflow = 'ellipsis';
+                teamMenuText.style.whiteSpace = 'nowrap';
+                teamMenuText.style.display = 'inline-block';
+                teamMenuText.style.maxWidth = '140px';
+                teamMenuText.style.verticalAlign = 'middle';
+
+                if (teamMenuItem) {
+                    teamMenuItem.style.display = 'block';
+                }
+
+                console.log('Team menu text updated to:', teamName);
+            }
+        }
+
+        // Call the function to initially set the team menu name
+        updateTeamMenuName();
+
+        // Load and update project counter
+        updateProjectCounter();
+
+        // Function to update team page title
+        function updateTeamPageTitle(teamName) {
+            const teamPageTitle = document.getElementById('teamPageTitle');
+            if (teamPageTitle) {
+                teamPageTitle.textContent = teamName;
+            }
+        }
+
+        // Function to update project counter
+        function updateProjectCounter() {
+            fetch('/api/get-user-projects')
+                .then(response => response.json())
+                .then(data => {
+                    const projectCounter = document.getElementById('projectCounter');
+                    if (projectCounter && data.success && data.projects) {
+                        projectCounter.textContent = data.projects.length;
+                    } else if (projectCounter) {
+                        projectCounter.textContent = '0';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading project count:', error);
+                    const projectCounter = document.getElementById('projectCounter');
+                    if (projectCounter) {
+                        projectCounter.textContent = '0';
+                    }
+                });
+        }
+
+        // Function to update team name in sidebar
+        function updateTeamNameInSidebar(teamName) {
+            const teamMenuText = document.getElementById('teamMenuText');
+            if (teamMenuText) {
+                teamMenuText.textContent = teamName;
+            }
+        }
+
+        // Function to fetch team name and update UI
+        function fetchTeamNameAndUpdateUI() {
+            fetch('/api/get-team-name')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.team_name) {
+                    updateTeamPageTitle(data.team_name);
+                    updateTeamNameInSidebar(data.team_name);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching team name:', error);
+            });
+        }
+
+        function handleLogout() {
+            window.location.href = '/logout';
+        }
+
+        function copyInvitationLink() {
+            const invitationLinkInput = document.getElementById('invitationLink');
+            invitationLinkInput.select();
+            invitationLinkInput.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                document.execCommand('copy');
+                showToastNotification('Invitation link copied to clipboard!', 'success');
+
+                // Update button text temporarily
+                const copyBtn = document.getElementById('copyLinkBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy invitation link: ', err);
+                showToastNotification('Failed to copy invitation link. Please try again.', 'error');
+            }
+        }
+    </script>
+
+
+    <script>
+        function openAddMemberModal() {
+            document.getElementById('addMemberModal').classList.add('show');
+            generateInvitationLink();
+        }
+
+        function closeAddMemberModal() {
+            document.getElementById('addMemberModal').classList.remove('show');
+            document.getElementById('memberEmail').value = '';
+        }
+
+        function generateInvitationLink() {
+            // Generate a unique invitation token
+            const invitationToken = generateUniqueToken();
+            const baseUrl = window.location.origin;
+            const invitationLink = `${baseUrl}/signup-step2?invite=${invitationToken}`;
+
+            document.getElementById('invitationLink').value = invitationLink;
+            document.getElementById('copyLinkBtn').disabled = false;
+
+            // Store the token for future use
+            sessionStorage.setItem('currentInvitationToken', invitationToken);
+        }
+
+        function generateUniqueToken() {
+            // Generate a unique token using current timestamp and random string
+            const timestamp = Date.now().toString(36);
+            const randomStr = Math.random().toString(36).substring(2, 15);
+            return `${timestamp}${randomStr}`;
+        }
+
+        function generateInvitationLink() {
+            // Generate a unique invitation token
+            const invitationToken = generateUniqueToken();
+            const baseUrl = window.location.origin;
+            const invitationLink = `${baseUrl}/signup-step2?invite=${invitationToken}`;
+
+            document.getElementById('invitationLink').value = invitationLink;
+            document.getElementById('copyLinkBtn').disabled = false;
+
+            // Store the token for future use
+            sessionStorage.setItem('currentInvitationToken', invitationToken);
+        }
+
+        function copyInvitationLink() {
+            const linkInput = document.getElementById('invitationLink');
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                document.execCommand('copy');
+                showToastNotification('Invitation link copied to clipboard!', 'success');
+
+                // Update button text temporarily
+                const copyBtn = document.getElementById('copyLinkBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy link:', err);
+                showToastNotification('Failed to copy link. Please copy manually.', 'error');
+            }
+        }
+    </script>
+
+    <!-- ADAM Chat Widget -->
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/adam-chat-widget.js') }}"></script>
+    
+    <script>
+        // Ensure ADAM chat widget initializes on team page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set authenticated class on body for ADAM widget
+            document.body.classList.add('authenticated');
+            
+            // Initialize ADAM widget if not already initialized
+            if (typeof ADAMChatWidget !== 'undefined' && !window.adamChat) {
+                try {
+                    window.adamChat = new ADAMChatWidget();
+                    console.log('ADAM chat widget initialized successfully on team page');
+                } catch (error) {
+                    console.error('Failed to initialize ADAM chat widget on team page:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

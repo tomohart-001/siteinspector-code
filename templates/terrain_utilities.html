@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Builder - EngineRoom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/adam-chat-widget.css') }}">
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+        }
+
+        /* Header Styles - Consistent with Site Inspector */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 16px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 2000;
+            height: 60px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-back-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .header-title {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            color: #cccccc;
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin: 2px 0 0 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 60px;
+            padding: 40px 24px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-hero {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .page-title {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .page-description {
+            color: #cccccc;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Feature Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(84, 123, 247, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(84, 123, 247, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .feature-title {
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+
+        .feature-description {
+            color: #cccccc;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Site Info Panel */
+        .site-info-panel {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .site-info-title {
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+        }
+
+        .site-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .site-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .site-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .site-info-label {
+            color: #cccccc;
+            font-weight: 500;
+        }
+
+        .site-info-value {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #6287ff 0%, #5575e8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(84, 123, 247, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 24px 16px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="authenticated">
+    <!-- Site Header -->
+    <div class="site-header">
+        <div class="header-left">
+            <a href="/site-inspector" class="header-back-btn">
+                ← Back to Site Inspector
+            </a>
+            <div class="header-title-section">
+                <h1 class="header-title">Terrain & Utilities</h1>
+                <p class="header-subtitle">Design and plan your development</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Page Hero -->
+        <div class="page-hero">
+            <!-- Header and description removed as requested -->
+        </div>
+
+        <!-- Site Information Panel -->
+        {% if site_data %}
+        <div class="site-info-panel">
+            <h2 class="site-info-title">📍 Current Site</h2>
+            <div class="site-info-grid">
+                <div class="site-info-item">
+                    <span class="site-info-label">Address:</span>
+                    <span class="site-info-value">{{ site_data.get('address', 'Unknown') }}</span>
+                </div>
+                <div class="site-info-item">
+                    <span class="site-info-label">Council:</span>
+                    <span class="site-info-value">{{ site_data.get('council', 'Unknown') }}</span>
+                </div>
+                <div class="site-info-item">
+                    <span class="site-info-label">Zoning:</span>
+                    <span class="site-info-value">{{ site_data.get('zoning', 'Unknown') }}</span>
+                </div>
+                <div class="site-info-item">
+                    <span class="site-info-label">Site Area:</span>
+                    <span class="site-info-value">{{ area_text }}</span>
+                </div>
+                {% if site_data.get('buildable_area') and site_data.get('buildable_area', {}).get('buildable_area_m2') %}
+                <div class="site-info-item">
+                    <span class="site-info-label">Buildable Area:</span>
+                    <span class="site-info-value">{{ "{:,.0f}".format(site_data.get('buildable_area', {}).get('buildable_area_m2', 0)) }} m²</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <!-- Feature cards removed as requested -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <!-- Action buttons removed as requested -->
+        </div>
+    </div>
+
+    <script>
+        // Feature card click handlers removed
+        // Quick Design Wizard function removed
+
+        // Log page load
+        console.log('[ProjectBuilder] Page loaded successfully');
+        
+        // Initialize page with site data if available
+        {% if site_data %}
+        console.log('[ProjectBuilder] Site data available:', {{ site_data_json|safe }});
+        {% else %}
+        console.log('[ProjectBuilder] No site data available');
+        {% endif %}
+    </script>
+
+    <!-- ADAM Chat Widget -->
+    <script src="{{ url_for('static', filename='js/adam-chat-widget.js') }}"></script>
+</body>
+</html>

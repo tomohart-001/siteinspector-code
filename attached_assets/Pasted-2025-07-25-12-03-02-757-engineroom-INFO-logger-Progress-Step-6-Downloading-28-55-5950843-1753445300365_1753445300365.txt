@@ -1,0 +1,249 @@
+2025-07-25 12:03:02,757 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.595084351020645%)
+2025-07-25 12:03:02,757 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.59863228022231%)
+2025-07-25 12:03:02,757 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.60218020942397%)
+2025-07-25 12:03:02,758 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.605728138625636%)
+2025-07-25 12:03:02,758 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.609276067827295%)
+2025-07-25 12:03:02,758 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.612823997028954%)
+2025-07-25 12:03:02,758 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.61637192623062%)
+2025-07-25 12:03:02,758 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.61991985543228%)
+2025-07-25 12:03:02,758 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.623467784633945%)
+2025-07-25 12:03:02,758 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.627015713835604%)
+2025-07-25 12:03:02,759 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.63056364303726%)
+2025-07-25 12:03:02,759 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.63411157223893%)
+2025-07-25 12:03:02,759 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.63765950144059%)
+2025-07-25 12:03:02,759 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.641207430642254%)
+2025-07-25 12:03:02,759 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.64475535984391%)
+2025-07-25 12:03:02,759 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.64830328904557%)
+2025-07-25 12:03:02,759 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.65185121824724%)
+2025-07-25 12:03:02,760 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.6553991474489%)
+2025-07-25 12:03:02,760 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.65894707665056%)
+2025-07-25 12:03:02,760 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.66249500585222%)
+2025-07-25 12:03:02,760 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.66604293505388%)
+2025-07-25 12:03:02,760 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.66959086425555%)
+2025-07-25 12:03:02,760 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.673138793457206%)
+2025-07-25 12:03:02,760 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.67668672265887%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.68023465186053%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.68378258106219%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.687330510263855%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.690878439465514%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.69442636866718%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 28% (55.69797429786884%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.7015222270705%)
+2025-07-25 12:03:02,761 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.705070156272164%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.70861808547382%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.71216601467549%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.71571394387715%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.71926187307881%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.72280980228047%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.72635773148213%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.7299056606838%)
+2025-07-25 12:03:02,762 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.73345358988546%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.737001519087116%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.74054944828878%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.74409737749044%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.74764530669211%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.751193235893766%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.754741165095425%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.75828909429709%)
+2025-07-25 12:03:02,763 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.76183702349875%)
+2025-07-25 12:03:02,764 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.765384952700416%)
+2025-07-25 12:03:02,764 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.768932881902074%)
+2025-07-25 12:03:02,764 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.77248081110373%)
+2025-07-25 12:03:02,764 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.7760287403054%)
+2025-07-25 12:03:02,764 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.77957666950706%)
+2025-07-25 12:03:02,764 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.783124598708724%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.78667252791038%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.79022045711204%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.79376838631371%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.79731631551537%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.80086424471703%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.80441217391869%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.80796010312035%)
+2025-07-25 12:03:02,765 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.81150803232202%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.815055961523676%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.81860389072534%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.822151819927%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.82569974912866%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.829247678330326%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.832795607531985%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.83634353673365%)
+2025-07-25 12:03:02,766 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.83989146593531%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.843439395136976%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.846987324338635%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.8505352535403%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.85408318274196%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.85763111194362%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.861179041145284%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.86472697034694%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.86827489954861%)
+2025-07-25 12:03:02,767 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.87182282875027%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.87537075795193%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.878918687153586%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.88246661635525%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.88601454555691%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.88956247475858%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.893110403960236%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 29% (55.8966583331619%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.90020626236356%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.90375419156523%)
+2025-07-25 12:03:02,768 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.907302120766886%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.910850049968545%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.91439797917021%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.91794590837187%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.921493837573536%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.925041766775195%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.928589695976854%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.93213762517852%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.93568555438018%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.939233483581845%)
+2025-07-25 12:03:02,769 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.9427814127835%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.94632934198516%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.94987727118683%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.95342520038849%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.95697312959015%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.96052105879181%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.96406898799347%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.96761691719514%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.971164846396796%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.97471277559846%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.97826070480012%)
+2025-07-25 12:03:02,770 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.98180863400178%)
+2025-07-25 12:03:02,771 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.985356563203446%)
+2025-07-25 12:03:02,771 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.988904492405105%)
+2025-07-25 12:03:02,771 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.99245242160677%)
+2025-07-25 12:03:02,771 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.99600035080843%)
+2025-07-25 12:03:02,771 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (55.99954828001009%)
+2025-07-25 12:03:02,771 - engineroom - INFO - [logger] Progress Step 6: Downloading: 30% (56.0%)
+2025-07-25 12:03:02,771 - engineroom - INFO - [logger] Progress Step 6: Transforming coordinates... (57.0%)
+2025-07-25 12:03:02,826 - engineroom - INFO - [logger] Progress Step 6: Calculating buffer zones... (59.0%)
+2025-07-25 12:03:02,826 - engineroom - INFO - [logger] Progress Step 6: Reading elevation data... (61.0%)
+2025-07-25 12:03:02,957 - engineroom - INFO - [logger] Progress Step 6: Processing elevation values... (63.0%)
+2025-07-25 12:03:02,957 - engineroom - INFO - [logger] Progress Step 6: Smoothing terrain data... (65.0%)
+2025-07-25 12:03:02,957 - engineroom - INFO - [logger] Progress Step 6: Generating coordinate grids... (67.0%)
+2025-07-25 12:03:02,958 - engineroom - INFO - [logger] Progress Step 6: Finalizing terrain model... (68.0%)
+2025-07-25 12:03:02,958 - engineroom - INFO - [logger] Progress Step 6: Converting data format... (69.0%)
+2025-07-25 12:03:02,958 - engineroom - INFO - [logger] Progress Step 6: Terrain processing complete! (70.0%)
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] Progress Step 7: Creating visualization (70%)
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] [TerrainService] Progress Step 7: Creating visualization
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] [TerrainService] Generated Mapbox tile URL: https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/174.73472316024237,-41.28058757276975,16/508x400@2x?access_token=pk.eyJ1IjoidG9tby1oYXJ0IiwiYSI6ImNsemhjbzU2aTFvcmcya3Bhcm1vNGJqOTQifQ.f-vqCMUDiIpQZqHxJdE7Sw
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] [TerrainService] Added Mapbox tile integration
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] [TerrainService] Added 2 polygon overlays: ['site_boundary', 'buildable_area']
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] Progress Step 7: Complete! 🎉 (100%)
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] [TerrainService] Progress Step 7: Complete! 🎉
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] TerrainService - Terrain generation completed: Data points: 35
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] [TerrainService] DEBUG: Terrain generation completed successfully with 2 polygon overlays
+2025-07-25 12:03:02,961 - engineroom - INFO - [logger] Terrain data generated successfully for 27 Cornford Street, Karori, Wellington 6012, New Zealand
+172.31.79.34 - - [25/Jul/2025 12:03:02] "POST /api/generate-terrain HTTP/1.1" 200 -
+2025-07-25 12:03:13,749 - engineroom - INFO - [logger] Loading site data for project ID: 18
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Database tables initialized successfully
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Found 2 snapshots for project 18
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Available snapshot types: ['buildable_area', 'site_boundary']
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Processing snapshot type: buildable_area
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Snapshot data keys: ['buildable_coords', 'buildable_area_m2', 'site_area_m2', 'coverage_ratio', 'front_setback', 'rear_setback', 'side_setback', 'selected_edges', 'calculation_method', 'terrain_bounds', 'timestamp']
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Loaded terrain bounds from buildable area snapshot
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Loaded buildable area with 4 coordinates
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Processing snapshot type: site_boundary
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Snapshot data keys: ['coordinates', 'area_m2']
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] First coordinate type: <class 'list'>, value: [174.7347277712717, -41.280545298148816]
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] First coord elements: [<class 'float'>: 174.7347277712717, <class 'float'>: -41.280545298148816]
+2025-07-25 12:03:13,750 - engineroom - INFO - [logger] Loaded site boundary with 5 coordinates
+2025-07-25 12:03:13,750 - engineroom - WARNING - [logger] Project 18 missing lat/lng coordinates
+2025-07-25 12:03:13,751 - engineroom - INFO - [logger] Calculated center from site boundary: lat=-41.28054568510851, lng=174.73491837845827
+2025-07-25 12:03:13,751 - engineroom - INFO - [logger] Successfully loaded site data with 2 polygons: site boundary, buildable area
+172.31.79.34 - - [25/Jul/2025 12:03:13] "POST /api/load-site-data HTTP/1.1" 200 -
+2025-07-25 12:08:11,072 - engineroom - INFO - [logger] Terrain viewer page requested
+2025-07-25 12:08:11,073 - engineroom - INFO - [logger] Using project ID: 18
+2025-07-25 12:08:11,074 - engineroom - INFO - [logger] Database tables initialized successfully
+2025-07-25 12:08:11,074 - engineroom - INFO - [logger] Project data loaded for terrain viewer: Test at 27 Cornford Street, Karori, Wellington 6012, New Zealand
+2025-07-25 12:08:11,075 - engineroom - INFO - [logger] Database tables initialized successfully
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Found 2 snapshots for project 18
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Available snapshot types: ['buildable_area', 'site_boundary']
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Processing snapshot type: buildable_area
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Snapshot data keys: ['buildable_coords', 'buildable_area_m2', 'site_area_m2', 'coverage_ratio', 'front_setback', 'rear_setback', 'side_setback', 'selected_edges', 'calculation_method', 'terrain_bounds', 'timestamp']
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Loaded terrain bounds from buildable area snapshot
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Loaded buildable area with 4 coordinates
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Processing snapshot type: site_boundary
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Snapshot data keys: ['coordinates', 'area_m2']
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] First coordinate type: <class 'list'>, value: [174.7347277712717, -41.280545298148816]
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] First coord elements: [<class 'float'>: 174.7347277712717, <class 'float'>: -41.280545298148816]
+2025-07-25 12:08:11,082 - engineroom - INFO - [logger] Loaded site boundary with 5 coordinates
+2025-07-25 12:08:11,083 - engineroom - WARNING - [logger] Project 18 missing lat/lng coordinates
+2025-07-25 12:08:11,083 - engineroom - INFO - [logger] Calculated center from site boundary: lat=-41.28054568510851, lng=174.73491837845827
+2025-07-25 12:08:11,083 - engineroom - INFO - [logger] Loaded site data from project snapshots: ['buildable_area', 'terrainBounds', 'coordinates', 'area_m2', 'boundary_type', 'address', 'project_name', 'project_id', 'center_lat', 'center_lng']
+2025-07-25 12:08:11,093 - engineroom - ERROR - [logger] Terrain viewer error: unexpected char '`' at 25093
+172.31.79.34 - - [25/Jul/2025 12:08:12] "GET /terrain-viewer?project_id=18 HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "/home/runner/workspace/routes/terrain_routes.py", line 110, in handle_terrain_viewer
+    return render_template('terrain_viewer.html',
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/runner/workspace/templates/terrain_viewer.html", line 941, in template
+    <div class="project-name">{{ site_data```python
+jinja2.exceptions.TemplateSyntaxError: unexpected char '`' at 25093
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/routes/terrain_routes.py", line 118, in handle_terrain_viewer
+    return render_template('terrain_viewer.html',
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/runner/workspace/templates/terrain_viewer.html", line 941, in template
+    <div class="project-name">{{ site_data```python
+jinja2.exceptions.TemplateSyntaxError: unexpected char '`' at 25093
+172.31.79.34 - - [25/Jul/2025 12:08:12] "GET /terrain-viewer?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+172.31.79.34 - - [25/Jul/2025 12:08:12] "GET /terrain-viewer?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -

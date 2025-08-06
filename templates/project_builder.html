@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Builder - EngineRoom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Project Builder</h1>
+            <p>Design and plan your construction project</p>
+        </header>
+        
+        <main>
+            <div class="project-builder-content">
+                <h2>Coming Soon</h2>
+                <p>The project builder is currently under development.</p>
+                
+                {% if site_data and not site_data.get('error') %}
+                <div class="site-summary">
+                    <h3>Current Site</h3>
+                    <p>Area: {{ "%.0f"|format(site_data.area) }} m² ({{ "%.2f"|format(site_data.area / 10000) }} hectares)</p>
+                    {% if site_data.address %}
+                    <p>Address: {{ site_data.address }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="navigation">
+                    <a href="/site-selection" class="btn btn-secondary">Back to Site Selection</a>
+                    <a href="/site-inspector" class="btn btn-primary">Site Inspector</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

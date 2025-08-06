@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EngineRoom</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='ER Logo_1749447115584.png') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #4f7cff 0%, #6b8aff 50%, #8ba4ff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333333;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+            transition: background-color 0.5s ease; /* Smooth background color transition */
+        }
+
+        body.signup-active {
+            background: linear-gradient(135deg, #1e44be 0%, #1e44be 50%, #1e44be 100%); /* Darker blue from Engineroom logo */
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #1a202c;
+        }
+
+        .logo .engine {
+            color: #547bf7;
+        }
+
+        .logo .room {
+            color: #1e44be;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+            z-index: 10;
+            position: relative;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1200px;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-direction: row;
+            position: relative;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .auth-card.flipped {
+            max-height: 700px;
+            min-height: 650px;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 24px;
+            pointer-events: none;
+        }
+
+        .auth-content {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            z-index: 2;
+            margin-left: auto;
+        }
+
+        .auth-content.front {
+            transition: opacity 0.4s ease;
+        }
+
+        .auth-card.flipped .auth-content.front {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .auth-content.back {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 400px;
+            width: 400px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            padding: 20px 0;
+        }
+
+        .auth-content.back .auth-form {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-content.back .form-group {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-content.back .form-group input {
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        .auth-content.back .auth-btn {
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        .auth-card.flipped .auth-content.back {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: transparent;
+            border: none;
+            color: #718096;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            z-index: 100;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .back-btn:hover {
+            background: rgba(79, 124, 255, 0.1);
+            color: #4f7cff;
+        }
+
+        .back-arrow {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .back-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-content.back .auth-header {
+            margin-top: 30px;
+            margin-bottom: 16px;
+        }
+
+        .auth-header h1 {
+            margin: 0 0 16px 0;
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #1a202c;
+        }
+
+        .auth-header p {
+            color: #718096;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .auth-form {
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.8);
+            color: #2d3748;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: #4f7cff;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #a0aec0;
+        }
+
+        .password-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-input-container input {
+            padding-right: 50px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            background: rgba(79, 124, 255, 0.1);
+        }
+
+        .eye-icon {
+            width: 16px;
+            height: 16px;
+            color: #718096;
+            transition: color 0.2s ease;
+            fill: currentColor;
+        }
+
+        .password-toggle:hover .eye-icon {
+            color: #4f7cff;
+        }
+
+        .form-hint {
+            color: #718096;
+            font-size: 12px;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .field-error {
+            color: #e53e3e;
+            font-size: 12px;
+            margin-top: 6px;
+            padding: 4px 8px;
+            background: rgba(229, 62, 62, 0.1);
+            border-radius: 4px;
+            border-left: 3px solid #e53e3e;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, #4f7cff 0%, #6b8aff 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .auth-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #5a85ff 0%, #7694ff 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(79, 124, 255, 0.3);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .auth-error {
+            background: rgba(229, 62, 62, 0.1);
+            color: #e53e3e;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
+            border: 1px solid rgba(229, 62, 62, 0.2);
+        }
+
+        .auth-footer {
+            text-align: center;
+            color: #718096;
+            padding-top: 24px;
+            padding-bottom: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .auth-content.back .auth-footer {
+            padding-bottom: 48px;
+        }
+
+        .auth-footer p {
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .auth-link {
+            color: #4f7cff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .auth-link:hover {
+            color: #5a85ff;
+            text-decoration: underline;
+        }
+
+
+
+        /* 
+         * DEV NOTES - LOGIN/SIGNUP FLOW:
+         * ================================
+         * 
+         * CARD FLIP ANIMATION:
+         * - Uses .auth-card.flipped class to trigger transitions
+         * - Front card (login) has opacity: 1 by default, 0 when flipped
+         * - Back card (signup) has opacity: 0 by default, 1 when flipped
+         * - Card height changes from 500px to 640px when flipped for signup form
+         * 
+         * BACKGROUND COLOR TRANSITION:
+         * - body.signup-active class triggers darker blue background
+         * - Smooth 0.5s transition between states
+         * 
+         * BACK BUTTON BEHAVIOR:
+         * - Always navigates to homepage (/) regardless of current state
+         * - Positioned absolutely in top-left corner of card
+         * 
+         * FORM VALIDATION:
+         * - Real-time validation on input events
+         * - Client-side validation before server submission
+         * - Server-side validation with specific error targeting
+         * 
+         * ERROR HANDLING:
+         * - Field-specific errors shown below inputs with red styling
+         * - General form errors shown in .auth-error div
+         * - All errors cleared when switching between forms
+         */
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+
+            .logo {
+                font-size: 1.3rem;
+            }
+
+            .auth-card {
+                padding: 40px 30px;
+                max-width: 95%;
+                border-radius: 20px;
+                min-height: auto;
+                justify-content: center;
+                flex-direction: column;
+            }
+
+            .auth-content {
+                margin-left: 0;
+            }
+
+            .auth-header h1 {
+                font-size: 2rem;
+            }
+
+            .auth-header p {
+                font-size: 1rem;
+            }
+
+            .form-group input {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+
+            .auth-btn {
+                padding: 16px 20px;
+                font-size: 16px;
+            }
+
+            .modal-content {
+                width: 95%;
+                border-radius: 16px;
+            }
+
+            .modal-header {
+                padding: 24px 20px 12px 20px;
+            }
+
+            .modal-header h2 {
+                font-size: 1.6rem;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .modal-footer {
+                padding: 12px 20px 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <span class="engine">Engine</span><span class="room">Room</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="auth-card">
+            <button class="back-btn" id="backBtn">
+                <span class="back-arrow">←</span>
+                <span class="back-text" id="backText">Back</span>
+            </button>
+
+            <div class="auth-content front">
+                <div class="auth-header">
+                    <h1><span style="color: #4f7cff; font-weight: 600;">Engine</span><span style="color: #6b8aff; font-weight: 400;">Room</span></h1>
+                    <p>Sign in to your account</p>
+                </div>
+
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email address">
+                        <div class="field-error" id="loginEmailError" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required minlength="6" placeholder="Enter your password">
+                    </div>
+
+                    <button type="submit" class="auth-btn" id="loginBtn">Sign In</button>
+
+                    <div class="auth-error" id="loginError" style="display: none;"></div>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" id="showSignupBtn" class="auth-link">Sign up</a></p>
+                </div>
+            </div>
+
+            <!-- Signup Step 1: Email and Password -->
+            <div class="auth-content back" id="signupContent" style="display: none;">
+                <div class="auth-header">
+                    <h1>Create Account</h1>
+                </div>
+
+                <form id="signupForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="signupEmail">Email Address</label>
+                        <input type="email" id="signupEmail" name="email" required placeholder="Enter your email address">
+                        <small class="form-hint">Must be a valid email address</small>
+                        <div class="field-error" id="emailError" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="signupPassword" name="password" required minlength="6" placeholder="Create a password">
+                            <button type="button" class="password-toggle" id="toggleSignupPassword">
+                                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <small class="form-hint">At least 6 characters</small>
+                        <div class="field-error" id="signupPasswordError" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="confirmPassword" name="confirm_password" required placeholder="Confirm your password">
+                            <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <small class="form-hint">Must match password</small>
+                        <div class="field-error" id="confirmPasswordError" style="display: none;"></div>
+                    </div>
+
+                    <button type="submit" class="auth-btn" id="continueToStep2">Continue</button>
+
+                    <div class="auth-error" id="signupError" style="display: none;"></div>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" id="showLoginBtn" class="auth-link">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Input validation helpers
+        function validateEmail(email) {
+            if (!email) {
+                return 'Email address is required';
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return 'Please enter a valid email address';
+            }
+            return null;
+        }
+
+        function validatePassword(password) {
+            if (!password || password.length < 6) {
+                return 'Password must be at least 6 characters';
+            }
+            return null;
+        }
+
+        function showFieldError(fieldId, message) {
+            const errorDiv = document.getElementById(fieldId + 'Error');
+            const input = document.getElementById(fieldId);
+            if (errorDiv && input) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                input.style.borderColor = '#e53e3e';
+            }
+        }
+
+        function clearFieldError(fieldId) {
+            const errorDiv = document.getElementById(fieldId + 'Error');
+            const input = document.getElementById(fieldId);
+            if (errorDiv && input) {
+                errorDiv.style.display = 'none';
+                input.style.borderColor = '';
+            }
+        }
+
+        function clearAllErrors() {
+            ['loginEmail', 'password', 'confirmPassword', 'signupEmail', 'signupPassword'].forEach(clearFieldError);
+        }
+
+        // Password visibility toggle functions
+        function togglePasswordVisibility(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            const eyeIcon = button.querySelector('.eye-icon');
+
+            if (input && eyeIcon) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    // Eye-slash icon
+                    eyeIcon.innerHTML = `
+                        <path d="m1 1 22 22"/>
+                        <path d="M6.71 6.71C3.78 8.5 2 12 2 12s3 8 10 8c1.59 0 3.09-.29 4.32-.84"/>
+                        <path d="M10.5 10.5a2 2 0 1 0 3 3"/>
+                        <path d="M17.29 17.29C20.22 15.5 22 12 22 12s-3-8-10-8c-1.59 0-3.09.29-4.32.84"/>
+                    `;
+                } else {
+                    input.type = 'password';
+                    // Eye icon
+                    eyeIcon.innerHTML = `
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    `;
+                }
+            }
+        }
+
+        // Add event listeners for password toggle buttons
+        const toggleSignupPasswordBtn = document.getElementById('toggleSignupPassword');
+        const toggleConfirmPasswordBtn = document.getElementById('toggleConfirmPassword');
+
+        if (toggleSignupPasswordBtn) {
+            toggleSignupPasswordBtn.addEventListener('click', () => {
+                togglePasswordVisibility('signupPassword', 'toggleSignupPassword');
+            });
+        }
+
+        if (toggleConfirmPasswordBtn) {
+            toggleConfirmPasswordBtn.addEventListener('click', () => {
+                togglePasswordVisibility('confirmPassword', 'toggleConfirmPassword');
+            });
+        }
+
+        // Real-time validation for signup form - with proper null checks
+        const signupEmailEl = document.getElementById('signupEmail');
+        const signupPasswordEl = document.getElementById('signupPassword');
+        const confirmPasswordEl = document.getElementById('confirmPassword');
+
+        if (signupEmailEl) {
+            signupEmailEl.addEventListener('input', (e) => {
+                const email = e.target.value.trim();
+                // Only show validation error if user has entered something
+                if (email.length > 0) {
+                    const error = validateEmail(email);
+                    if (error) {
+                        showFieldError('signupEmail', error);
+                    } else {
+                        clearFieldError('signupEmail');
+                    }
+                } else {
+                    // Clear any existing errors when field is empty
+                    clearFieldError('signupEmail');
+                }
+            });
+        }
+
+        if (signupPasswordEl) {
+            signupPasswordEl.addEventListener('input', (e) => {
+                const password = e.target.value;
+                // Only show validation error if user has typed something
+                if (password.length > 0) {
+                    const error = validatePassword(password);
+                    if (error) {
+                        showFieldError('signupPassword', error);
+                    } else {
+                        clearFieldError('signupPassword');
+                    }
+                } else {
+                    clearFieldError('signupPassword');
+                }
+
+                // Also revalidate confirm password if it has content
+                const confirmPassword = document.getElementById('confirmPassword');
+                if (confirmPassword?.value) {
+                    if (password !== confirmPassword.value) {
+                        showFieldError('confirmPassword', 'Passwords do not match');
+                    } else {
+                        clearFieldError('confirmPassword');
+                    }
+                }
+            });
+        }
+
+        if (confirmPasswordEl) {
+            confirmPasswordEl.addEventListener('input', (e) => {
+                const password = document.getElementById('signupPassword')?.value;
+                if (password && e.target.value !== password) {
+                    showFieldError('confirmPassword', 'Passwords do not match');
+                } else {
+                    clearFieldError('confirmPassword');
+                }
+            });
+        }
+
+        // Login form handling
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('[AUTH-DEBUG] Login form submitted');
+
+            const loginBtn = document.getElementById('loginBtn');
+            const loginError = document.getElementById('loginError');
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+            loginError.style.display = 'none';
+            clearAllErrors();
+
+            try {
+                const formData = new FormData(e.target);
+                const email = formData.get('email').trim();
+                const password = formData.get('password');
+
+                // Client-side validation
+                console.log('[AUTH-DEBUG] Validating login credentials:', { email, passwordLength: password.length });
+                const emailError = validateEmail(email);
+                const passwordError = validatePassword(password);
+
+                if (emailError || passwordError) {
+                    console.log('[AUTH-DEBUG] Validation failed:', { emailError, passwordError });
+                    if (emailError) showFieldError('loginEmail', emailError);
+                    if (passwordError) showFieldError('password', passwordError);
+                    return;
+                }
+
+                console.log('[AUTH-DEBUG] Sending login request to server');
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                console.log('[AUTH-DEBUG] Login response:', { success: data.success, status: response.status });
+
+                if (data.success) {
+                    console.log('[AUTH-DEBUG] Login successful, redirecting to:', data.redirect);
+                    window.location.href = data.redirect;
+                } else {
+                    console.log('[AUTH-DEBUG] Login failed:', data.error);
+                    loginError.textContent = data.error;
+                    loginError.style.display = 'block';
+                }
+            } catch (error) {
+                loginError.textContent = 'Login failed. Please try again.';
+                loginError.style.display = 'block';
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
+            }
+        });
+
+        // Signup handling - Card flip animation
+        document.getElementById('showSignupBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            const authCard = document.querySelector('.auth-card');
+            const signupContent = document.getElementById('signupContent');
+
+            // Change background and flip card
+            document.body.classList.add('signup-active');
+            authCard.classList.add('flipped');
+
+            // Show signup content after card flip animation
+            setTimeout(() => {
+                signupContent.style.display = 'flex';
+                signupContent.style.opacity = '1';
+
+                // Focus on email input
+                const emailInput = document.getElementById('signupEmail');
+                if (emailInput) {
+                    setTimeout(() => emailInput.focus(), 100);
+                }
+            }, 400);
+
+            clearAllErrors();
+        });
+
+        // Login handling - Card flip back animation
+        document.getElementById('showLoginBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            const authCard = document.querySelector('.auth-card');
+            const signupContent = document.getElementById('signupContent');
+
+            // Revert background and flip card back
+            document.body.classList.remove('signup-active');
+            authCard.classList.remove('flipped');
+
+            // Hide signup content
+            signupContent.style.display = 'none';
+            signupContent.style.opacity = '0';
+
+            clearAllErrors();
+        });
+
+        // Back button handling
+        document.getElementById('backBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('[AUTH-DEBUG] Back button clicked, navigating to homepage');
+            // Always go back to homepage
+            window.location.href = '/';
+        });
+
+        // Signup form submission (Step 1)
+        document.getElementById('signupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('signupError');
+            let signupData = {};
+
+            // Clear previous errors
+            clearAllErrors();
+            errorDiv.style.display = 'none';
+            let hasErrors = false;
+
+            // Validate email with proper error handling
+            if (!email) {
+                showFieldError('signupEmail', 'Email address is required');
+                hasErrors = true;
+            } else {
+                const emailError = validateEmail(email);
+                if (emailError) {
+                    showFieldError('signupEmail', emailError);
+                    hasErrors = true;
+                }
+            }
+
+            // Validate password with proper error handling
+            if (!password) {
+                showFieldError('signupPassword', 'Password is required');
+                hasErrors = true;
+            } else {
+                const passwordError = validatePassword(password);
+                if (passwordError) {
+                    showFieldError('signupPassword', passwordError);
+                    hasErrors = true;
+                }
+            }
+
+            // Validate password confirmation
+            if (!confirmPassword) {
+                showFieldError('confirmPassword', 'Please confirm your password');
+                hasErrors = true;
+            } else if (password !== confirmPassword) {
+                showFieldError('confirmPassword', 'Passwords do not match');
+                hasErrors = true;
+            }
+
+            if (!hasErrors) {
+                // Update button state
+                const continueBtn = document.getElementById('continueToStep2');
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'Checking email...';
+
+                // Check if email already exists before proceeding
+                fetch('/api/check-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (!result.available) {
+                        showFieldError('signupEmail', 'An account with this email address already exists. Please sign in or use a different email to create a new account.');
+                        return;
+                    }
+
+                    // Store signup data and proceed to step 2
+                    signupData.email = email;
+                    signupData.password = password;
+
+                    try {
+                        sessionStorage.setItem('signupData', JSON.stringify(signupData));
+                        console.log('[SIGNUP-DEBUG] Session data saved:', {email: signupData.email, hasPassword: !!signupData.password});
+
+                        // Verify session storage was saved
+                        const savedData = sessionStorage.getItem('signupData');
+                        if (savedData) {
+                            console.log('[SIGNUP-DEBUG] Session data verified, redirecting to step 2');
+                            // Use window.location.href for better compatibility
+                            window.location.href = '/signup-step2';
+                        } else {
+                            throw new Error('Failed to save session data');
+                        }
+                    } catch (error) {
+                        console.error('[SIGNUP-DEBUG] Session storage error:', error);
+                        errorDiv.textContent = 'Unable to proceed. Please try again.';
+                        errorDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('[SIGNUP-DEBUG] Email check error:', error);
+                    errorDiv.textContent = 'Unable to verify email. Please try again.';
+                    errorDiv.style.display = 'block';
+                })
+                .finally(() => {
+                    continueBtn.disabled = false;
+                    continueBtn.textContent = 'Continue';
+                });
+            }
+        });
+
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - EngineRoom</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='ER Logo_1749447115584.png') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 0 0 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .menu-section {
+            margin-bottom: 2rem;
+        }
+
+        .menu-section:last-of-type {
+            flex-grow: 1;
+        }
+
+        .menu-title {
+            color: #a0aec0;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: #f7fafc;
+            color: #1a202c;
+        }
+
+        .menu-item.active {
+            background: #edf2f7;
+            color: #547bf7;
+            border-left-color: #547bf7;
+        }
+
+        .menu-item .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-item .badge {
+            background: #48bb78;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 12px;
+            margin-left: auto;
+        }
+
+        #teamMenuText {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 120px;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1.2;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem 2rem 2rem 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-left h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-left p {
+            color: #718096;
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        /* User Profile */
+        .user-profile {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: auto;
+            position: relative;
+        }
+
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .user-dropdown-toggle:hover {
+            background: #f7fafc;
+        }
+
+        .user-dropdown-menu {
+            position: fixed;
+            bottom: 20px;
+            left: 260px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .user-dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .user-dropdown-menu .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .user-dropdown-menu .dropdown-item:hover {
+            background: #f7fafc;
+            color: #1a202c;
+        }
+
+        .user-dropdown-menu .dropdown-item.logout {
+            color: #e53e3e;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 4px;
+        }
+
+        .user-dropdown-menu .dropdown-item.logout:hover {
+            background: #fed7d7;
+        }
+
+        .user-dropdown-menu .dropdown-item .icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 0.875rem;
+        }
+
+        .user-email {
+            font-size: 0.75rem;
+            color: #718096;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 150px;
+        }
+
+        /* Settings Styles */
+        .settings-content {
+            max-width: 600px;
+        }
+
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .settings-section {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .settings-section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 1rem;
+        }
+
+        .profile-picture-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .current-avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-avatar.large {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+        }
+
+        .user-avatar.large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-picture-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #1f2937;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #547bf7;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .card-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* In-App Notification Styles */
+        .in-app-notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 16px 20px;
+            max-width: 400px;
+            min-width: 280px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 4000;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: notificationSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .in-app-notification:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .in-app-notification.success {
+            border-left: 4px solid #4caf50;
+            color: #333333;
+        }
+
+        .in-app-notification.error {
+            border-left: 4px solid #f44336;
+            color: #333333;
+        }
+
+        .in-app-notification.warning {
+            border-left: 4px solid #ff9800;
+            color: #333333;
+        }
+
+        .in-app-notification.info {
+            border-left: 4px solid #2196f3;
+            color: #333333;
+        }
+
+        .notification-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.success { color: #4caf50; }
+        .notification-icon.error { color: #f44336; }
+        .notification-icon.warning { color: #ff9800; }
+        .notification-icon.info { color: #2196f3; }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-close {
+            color: #888888;
+            font-size: 16px;
+            font-weight: 600;
+            flex-shrink: 0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .notification-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333333;
+        }
+
+        /* Notification Animations */
+        @keyframes notificationSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes notificationSlideOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        /* Profile Picture Modal */
+        .profile-picture-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 6000;
+            backdrop-filter: blur(5px);
+        }
+
+        .profile-picture-modal-overlay.show {
+            display: flex;
+        }
+
+        .profile-picture-modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            margin: 20px;
+            animation: modalSlideIn 0.3s ease;
+            max-height: 90vh;
+            overflow: hidden;
+        }
+
+        .profile-picture-modal-header {
+            padding: 20px 24px 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-picture-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .profile-picture-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #718096;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .profile-picture-modal-close:hover {
+            color: #4a5568;
+        }
+
+        .profile-picture-modal-body {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .crop-container {
+            position: relative;
+            display: inline-block;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f7fafc;
+        }
+
+        #cropCanvas {
+            display: block;
+            cursor: grab;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #cropCanvas:active {
+            cursor: grabbing;
+        }
+
+        .crop-controls {
+            margin-top: 16px;
+        }
+
+        .crop-info {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .profile-picture-modal-actions {
+            padding: 16px 24px 24px 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .profile-picture-modal-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .profile-picture-modal-btn-cancel {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .profile-picture-modal-btn-cancel:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .profile-picture-modal-btn-save {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+        }
+
+        .profile-picture-modal-btn-save:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        .profile-picture-modal-btn-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Account Type Confirmation Modal */
+        .account-type-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+            backdrop-filter: blur(5px);
+        }
+
+        .account-type-modal-overlay.show {
+            display: flex;
+        }
+
+        .account-type-modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            max-width: 480px;
+            width: 90%;
+            margin: 20px;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .account-type-modal-header {
+            padding: 24px 24px 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .account-type-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .account-type-modal-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .account-type-modal-body {
+            padding: 24px;
+        }
+
+        .account-type-modal-message {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .account-type-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .account-type-warning-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .account-type-warning-text {
+            color: #856404;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .account-type-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .account-type-modal-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .account-type-modal-btn-cancel {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .account-type-modal-btn-cancel:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .account-type-modal-btn-confirm {
+            background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%);
+            color: white;
+        }
+
+        .account-type-modal-btn-confirm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Team Setup Modal Styles */
+        .team-setup-modal-close:hover {
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: #4a5568 !important;
+        }
+
+        .team-setup-form-group input:focus,
+        .team-setup-form-group select:focus {
+            outline: none !important;
+            border-color: #547bf7 !important;
+            box-shadow: 0 0 0 3px rgba(84, 123, 247, 0.1) !important;
+        }
+
+        .team-setup-btn-secondary:hover {
+            background: #edf2f7 !important;
+            border-color: #cbd5e0 !important;
+        }
+
+        .team-setup-btn-primary:hover {
+            background: linear-gradient(135deg, #6287ff 0%, #5575e8 100%) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(84, 123, 247, 0.3);
+        }
+
+        /* Team Section Styles */
+        .team-name-display {
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .team-name-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .team-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .team-actions .btn {
+            width: 100%;
+        }
+
+        /* Leave Team Warning Modal */
+        .leave-team-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+            backdrop-filter: blur(5px);
+        }
+
+        .leave-team-modal-overlay.show {
+            display: flex;
+        }
+
+        .leave-team-modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            max-width: 480px;
+            width: 90%;
+            margin: 20px;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .leave-team-modal-header {
+            padding: 24px 24px 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .leave-team-modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .leave-team-modal-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .leave-team-modal-body {
+            padding: 24px;
+        }
+
+        .leave-team-modal-message {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .leave-team-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .leave-team-warning-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .leave-team-warning-text {
+            color: #856404;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .leave-team-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .leave-team-modal-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .leave-team-modal-btn-cancel {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .leave-team-modal-btn-cancel:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .leave-team-modal-btn-confirm {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+        }
+
+        .leave-team-modal-btn-confirm:hover {
+            transform: translateY(-1px);
+            box-shadow: ```python
+0 4px 12px rgba(229, 62, 62, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-picture-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .settings-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">ER</div>
+            <span class="logo-text">EngineRoom</span>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">Menu</div>
+            <a href="/dashboard" class="menu-item">
+                <div class="icon">📋</div>
+                Projects
+                <div class="badge" id="projectCounter">0</div>
+            </a>
+            <a href="/team" class="menu-item" id="teamMenuItem">
+                <div class="icon">👥</div>
+                <span id="teamMenuText">Team</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">General</div>
+            <a href="/blueprints" class="menu-item">
+                <div class="icon">🗂️</div>
+                Blueprints
+            </a>
+            <a href="/toolshop" class="menu-item">
+                <div class="icon">🛠️</div>
+                Tool Shop
+            </a>
+        </div>
+
+        <div class="user-profile">
+            <div class="user-dropdown">
+                <div class="user-dropdown-toggle" id="userProfileDropdownToggle">
+                    <div class="user-avatar" id="sidebarProfilePicture">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {% else %}
+                            {{ user.username[0].upper() if user else 'U' }}
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ user.first_name if user and user.first_name else user.username if user else 'Guest' }}</div>
+                        <div class="user-email">{{ user.email if user and user.email else user.username + '@engineroom.com' if user else 'user@engineroom.com' }}</div>
+                    </div>
+                </div>
+                <div class="user-dropdown-menu" id="userProfileDropdownMenu">
+                    <a href="/dashboard-settings" class="dropdown-item">
+                        <div class="icon">⚙️</div>
+                        <span>Settings</span>
+                    </a>
+                    <form action="/logout" method="POST" style="display: contents;">
+                        <button type="submit" class="dropdown-item logout">
+                            <div class="icon">🚪</div>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <h1>Settings</h1>
+                <p>Manage your account and preferences</p>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <div class="content-card">
+                <div class="card-header">
+                    <h3 class="card-title">Account Settings</h3>
+                </div>
+                <div class="settings-content">
+                    <form id="settingsForm" class="settings-form">
+                        <!-- Profile Picture Section -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">Profile Picture</h4>
+                            <div class="profile-picture-section">
+                                <div class="current-avatar">
+                                    <div class="user-avatar large" id="currentProfilePicture">
+                                        {% if user.profile_picture %}
+                                            <img src="{{ user.profile_picture }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                        {% else %}
+                                            {{ user.username[0].upper() if user else 'U' }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="profile-picture-actions">
+                                    <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('profilePictureInput').click()">
+                                        Change Picture
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information Section -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">Personal Information</h4>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="firstName">First Name</label>
+                                    <input type="text" id="firstName" name="firstName" class="form-input" placeholder="Enter first name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Last Name</label>
+                                    <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Enter last name">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="email">Email Address</label>
+                                    <input type="email" id="email" name="email" class="form-input" value="{{ user.email if user and user.email else '' }}" placeholder="Enter email address">
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Password Section -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">Change Password</h4>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="currentPassword">Current Password</label>
+                                    <input type="password" id="currentPassword" name="currentPassword" class="form-input" placeholder="Enter current password">
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">New Password</label>
+                                    <input type="password" id="newPassword" name="newPassword" class="form-input" placeholder="Enter new password">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="confirmPassword">Confirm New Password</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Confirm new password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Team Section -->
+                        <div class="settings-section" id="teamSection">
+                            <h4 class="settings-section-title">Team</h4>
+                            <div id="teamContent" style="padding: 1.5rem;">
+                                <div id="teamMemberContent" style="display: none;">
+                                    <div class="team-name-display">
+                                        <p class="team-name-text" id="teamNameDisplay">Loading team...</p>
+                                    </div>
+                                    <div class="team-actions" style="margin-top: 1.5rem;">
+                                        <button type="button" class="btn btn-secondary" id="manageTeamBtn" style="display: none;" onclick="window.location.href='/team#settings'">
+                                            Manage Team
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" id="createTeamBtn" style="display: none;" onclick="showLeaveTeamWarning()">
+                                            Create Team
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="noTeamContent" style="display: none;">
+                            <p style="color: #718096; margin-bottom: 1.5rem;">You're not currently part of a team. You can join an existing team or create a new one.</p>
+
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="invitationTokenInput">Have an invitation link?</label>
+                                <div style="display: flex; gap: 12px; align-items: stretch; margin-bottom: 12px;">
+                                    <input type="text" id="invitationTokenInput" class="form-input" placeholder="Paste invitation link here" style="flex: 1; height: 44px;">
+                                    <button type="button" class="btn btn-secondary" onclick="applyInvitationToken()" style="white-space: nowrap; height: 44px; padding: 0 20px;">
+                                        Join Team
+                                    </button>
+                                </div>
+                                <small>If you received an invitation link from a team member, paste it here to join their team.</small>
+                            </div>
+
+                            <div style="text-align: center; margin: 1.5rem 0;">
+                                <span style="color: #718096; font-size: 0.875rem;">or</span>
+                            </div>
+
+                            <div style="text-align: center;">
+                                <button type="button" class="btn btn-primary" onclick="showCreateTeamModal()" style="width: 100%; display: flex; align-items: center; justify-content: center;">
+                                    Create New Team
+                                </button>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="settings-actions">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Picture Crop Modal -->
+    <div class="profile-picture-modal-overlay" id="profilePictureModal">
+        <div class="profile-picture-modal">
+            <div class="profile-picture-modal-header">
+                <h3 class="profile-picture-modal-title">Crop Profile Picture</h3>
+                <button class="profile-picture-modal-close" id="profilePictureModalClose">×</button>
+            </div>
+            <div class="profile-picture-modal-body">
+                <div class="crop-container">
+                    <canvas id="cropCanvas" width="400" height="400"></canvas>
+                </div>
+                <div class="crop-controls">
+                    <div class="crop-info">
+                        <p>Drag to reposition • Scroll to zoom • Image will be cropped to a circle</p>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-picture-modal-actions">
+                <button class="profile-picture-modal-btn profile-picture-modal-btn-cancel" id="profilePictureModalCancel">
+                    Cancel
+                </button>
+                <button class="profile-picture-modal-btn profile-picture-modal-btn-save" id="profilePictureModalSave">
+                    Save Profile Picture
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Unsaved Changes Warning Modal -->
+    <div class="account-type-modal-overlay" id="unsavedChangesModal">
+        <div class="account-type-modal">
+            <div class="account-type-modal-header">
+                <h3 class="account-type-modal-title">
+                    <div class="account-type-modal-icon">!</div>
+                    Unsaved Changes
+                </h3>
+            </div>
+            <div class="account-type-modal-body">
+                <p class="account-type-modal-message">
+                    You have unsaved changes that will be lost if you leave this page. Are you sure you want to continue?
+                </p>
+                <div class="account-type-warning">
+                    <div class="account-type-warning-title">Warning:</div>
+                    <div class="account-type-warning-text">
+                        Any changes you've made to your profile settings will be permanently lost.
+                    </div>
+                </div>
+                <div class="account-type-modal-actions">
+                    <button class="account-type-modal-btn account-type-modal-btn-cancel" id="unsavedChangesModalCancel">
+                        Stay on Page
+                    </button>
+                    <button class="account-type-modal-btn account-type-modal-btn-confirm" id="unsavedChangesModalConfirm">
+                        Leave Without Saving
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Team Warning Modal -->
+    <div class="leave-team-modal-overlay" id="leaveTeamModal">
+        <div class="leave-team-modal">
+            <div class="leave-team-modal-header">
+                <h3 class="leave-team-modal-title">
+                    <div class="leave-team-modal-icon">!</div>
+                    Leave Current Team
+                </h3>
+            </div>
+            <div class="leave-team-modal-body">
+                <p class="leave-team-modal-message">
+                    You need to leave your current team before you can create a new one. Are you sure you want to continue?
+                </p>
+                <div class="leave-team-warning">
+                    <div class="leave-team-warning-title">Warning:</div>
+                    <div class="leave-team-warning-text">
+                        Leaving your current team will remove your access to all team projects and resources. This action cannot be undone.
+                    </div>
+                </div>
+                <div class="leave-team-modal-actions">
+                    <button class="leave-team-modal-btn leave-team-modal-btn-cancel" id="leaveTeamModalCancel">
+                        Cancel
+                    </button>
+                    <button class="leave-team-modal-btn leave-team-modal-btn-confirm" id="leaveTeamModalConfirm">
+                        Leave Team & Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Setup Modal -->
+    <div class="modal-overlay" id="teamSetupModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div class="team-setup-modal" style="max-width: 560px; width: 90%; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); animation: modalSlideIn 0.3s ease; overflow: hidden;">
+            <div class="team-setup-modal-header" style="padding: 32px 32px 24px 32px; border-bottom: 1px solid #e2e8f0; text-align: center;">
+                <h2 style="margin: 0; font-size: 1.75rem; font-weight: 600; color: #1a202c;">Set Up Your Team</h2>
+                <button class="team-setup-modal-close" id="closeTeamSetupSettings" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #718096; font-size: 24px; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s ease;">&times;</button>
+            </div>
+            <div class="team-setup-modal-body" style="padding: 32px;">
+                <form id="teamSetupFormSettings">
+                    <div class="team-setup-form-group" style="margin-bottom: 24px;">
+                        <label for="teamNameSettings" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 0.875rem;">Organisation or Team Name</label>
+                        <input type="text" id="teamNameSettings" name="teamName" required placeholder="Enter your team name here" style="width: 100%; padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 1rem; color: #1f2937; transition: all 0.2s ease; box-sizing: border-box;">
+                    </div>
+                    <div class="team-setup-form-group" style="margin-bottom: 32px;">
+                        <label for="teamSizeSettings" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 0.875rem;">Expected Team Size</label>
+                        <select id="teamSizeSettings" name="teamSize" required style="width: 100%; padding: 14px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 1rem; color: #1f2937; transition: all 0.2s ease; box-sizing: border-box; background: white;">
+                            <option value="">Select team size</option>
+                            <option value="2-5">2-5 members</option>
+                            <option value="6-10">6-10 members</option>
+                            <option value="11-25">11-25 members</option>
+                            <option value="26+">26+ members</option>
+                        </select>
+                    </div>
+                    <div class="team-setup-form-buttons" style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" class="team-setup-btn team-setup-btn-secondary" id="cancelTeamSetupSettings" style="padding: 12px 24px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f7fafc; color: #4a5568; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 14px;">Cancel</button>
+                        <button type="submit" class="team-setup-btn team-setup-btn-primary" style="padding: 12px 24px; border-radius: 8px; border: none; background: linear-gradient(135deg, #547bf7 0%, #4a6bda 100%); color: white; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 14px;">Create Team</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User profile dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const userProfileDropdownToggle = document.getElementById('userProfileDropdownToggle');
+            const userProfileDropdownMenu = document.getElementById('userProfileDropdownMenu');
+
+            if (userProfileDropdownToggle && userProfileDropdownMenu) {
+                userProfileDropdownToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Toggle dropdown
+                    userProfileDropdownToggle.classList.toggle('active');
+                    userProfileDropdownMenu.classList.toggle('show');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userProfileDropdownToggle.contains(e.target) && !userProfileDropdownMenu.contains(e.target)) {
+                        userProfileDropdownToggle.classList.remove('active');
+                        userProfileDropdownMenu.classList.remove('show');
+                    }
+                });
+
+                // Prevent dropdown from closing when clicking inside
+                userProfileDropdownMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+
+            // Track unsaved changes
+            let hasUnsavedChanges = false;
+            let originalFormData = {};
+
+            // Load user profile data
+            function loadUserProfile() {
+                fetch('/api/get-user-profile')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error('Error loading profile:', data.error);
+                            return;
+                        }
+
+                        // Populate form fields
+                        document.getElementById('firstName').value = data.first_name || '';
+                        document.getElementById('lastName').value = data.last_name || '';
+                        document.getElementById('email').value = data.email || '';
+
+                        // Clear password fields (for security)
+                        document.getElementById('currentPassword').value = '';
+                        document.getElementById('newPassword').value = '';
+                        document.getElementById('confirmPassword').value = '';
+
+                        // Store original form data for comparison
+                        originalFormData = {
+                            firstName: data.first_name || '',
+                            lastName: data.last_name || '',
+                            email: data.email || ''
+                        };
+
+                        // Load team information
+                        loadTeamInformation(data);
+
+                        console.log('User profile loaded successfully');
+                    })
+                    .catch(error => {
+                        console.error('Failed to load user profile:', error);
+                    });
+            }
+
+            // Load team information
+            function loadTeamInformation(userData) {
+                // Always show team section regardless of account type
+                document.getElementById('teamSection').style.display = 'block';
+
+                // Try to get team information for all users
+                fetch('/api/get-team-name')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.team_name) {
+                            // User has a team
+                            document.getElementById('teamNameDisplay').textContent = data.team_name;
+                            document.getElementById('teamMemberContent').style.display = 'block';
+                            document.getElementById('noTeamContent').style.display = 'none';
+
+                            // Show appropriate button based on role
+                            const userRole = userData.role;
+                            console.log('User role for team section:', userRole, 'Team name:', data.team_name);
+
+                            if (userRole === 'owner' || userRole === 'admin') {
+                                document.getElementById('manageTeamBtn').style.display = 'inline-block';
+                                document.getElementById('createTeamBtn').style.display = 'none';
+                            } else {
+                                document.getElementById('manageTeamBtn').style.display = 'none';
+                                document.getElementById('createTeamBtn').style.display = 'inline-block';
+                            }
+                        } else {
+                            // User doesn't have a team - show options to create or join
+                            showNoTeamContent();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to load team name:', error);
+                        // Show create/join options if can't load team
+                        showNoTeamContent();
+                    });
+            }
+
+            function showNoTeamContent() {
+                document.getElementById('teamMemberContent').style.display = 'none';
+                document.getElementById('noTeamContent').style.display = 'block';
+            }
+
+            // Load profile data on page load
+            loadUserProfile();
+
+            // Load and update project counter
+            updateProjectCounter();
+
+            // Update team menu name
+            updateTeamMenuName();
+
+            // Call updateTeamMenuName again after a short delay to ensure it works
+            setTimeout(updateTeamMenuName, 500);
+
+            // Add change detection to form fields
+            function setupChangeDetection() {
+                const formFields = ['firstName', 'lastName', 'email', 'currentPassword', 'newPassword', 'confirmPassword'];
+
+                formFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.addEventListener('input', checkForChanges);
+                    }
+                });
+            }
+
+            function checkForChanges() {
+                const currentData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value
+                };
+
+                // Check for password changes
+                const hasPasswordChange = document.getElementById('currentPassword').value || 
+                                        document.getElementById('newPassword').value || 
+                                        document.getElementById('confirmPassword').value;
+
+                // Compare with original data
+                const hasFormChanges = Object.keys(currentData).some(key => 
+                    currentData[key] !== originalFormData[key]
+                );
+
+                hasUnsavedChanges = hasFormChanges || hasPasswordChange;
+            }
+
+            // Setup change detection after form loads
+            setTimeout(setupChangeDetection, 500);
+
+
+
+            // In-app notification function
+            function showInAppNotification(message, type = 'info', duration = 5000) {
+                // Remove any existing notifications
+                const existingNotifications = document.querySelectorAll('.in-app-notification');
+                existingNotifications.forEach(notification => {
+                    notification.style.animation = 'notificationSlideOut 0.3s ease forwards';
+                    setTimeout(() => notification.remove(), 300);
+                });
+
+                // Create new notification
+                const notification = document.createElement('div');
+                notification.className = `in-app-notification ${type}`;
+
+                // Set icon based on type
+                let icon = '💬';
+                switch (type) {
+                    case 'success':
+                        icon = '✅';
+                        break;
+                    case 'error':
+                        icon = '❌';
+                        break;
+                    case 'warning':
+                        icon = '⚠️';
+                        break;
+                    case 'info':
+                        icon = 'ℹ️';
+                        break;
+                }
+
+                notification.innerHTML = `
+                    <div class="notification-icon ${type}">${icon}</div>
+                    <div class="notification-content">${message}</div>
+                    <div class="notification-close">×</div>
+                `;
+
+                // Add to page
+                document.body.appendChild(notification);
+
+                // Add click handlers
+                const closeBtn = notification.querySelector('.notification-close');
+                const closeNotification = () => {
+                    notification.style.animation = 'notificationSlideOut 0.3s ease forwards';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                };
+
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeNotification();
+                });
+
+                // Click anywhere on notification to close
+                notification.addEventListener('click', closeNotification);
+
+                // Auto-remove after duration
+                if (duration > 0) {
+                    setTimeout(closeNotification, duration);
+                }
+            }
+
+            // Settings form functionality
+            const settingsForm = document.getElementById('settingsForm');
+            if (settingsForm) {
+                settingsForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    // Get form data
+                    const formData = new FormData(settingsForm);
+                    const data = {
+                        firstName: formData.get('firstName'),
+                        lastName: formData.get('lastName'),
+                        email: formData.get('email'),
+                        currentPassword: formData.get('currentPassword'),
+                        newPassword: formData.get('newPassword'),
+                        confirmPassword: formData.get('confirmPassword')
+                    };
+
+                    // Validate passwords match if changing password
+                    if (data.newPassword && data.newPassword !== data.confirmPassword) {
+                        showInAppNotification('New passwords do not match', 'error');
+                        return;
+                    }
+
+                    // Send data to server
+                    console.log('Settings update:', data);
+
+                    fetch('/api/update-settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            showInAppNotification('Settings updated successfully!', 'success');
+                            if (result.password_updated) {
+                                // Clear password fields
+                                document.getElementById('currentPassword').value = '';
+                                document.getElementById('newPassword').value = '';
+                                document.getElementById('confirmPassword').value = '';
+                            }
+
+                            // Clear unsaved changes flag
+                            hasUnsavedChanges = false;
+
+                            // Update original form data
+                            originalFormData = {
+                                firstName: document.getElementById('firstName').value,
+                                lastName: document.getElementById('lastName').value,
+                                email: document.getElementById('email').value
+                            };
+                        } else {
+                            showInAppNotification('Error: ' + (result.error || 'Unknown error'), 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Settings update error:', error);
+                        showInAppNotification('Failed to update settings. Please try again.', 'error');
+                    });
+                });
+            }
+
+            // Profile picture cropping functionality
+            let currentImageFile = null;
+            let cropCanvas = null;
+            let cropContext = null;
+            let imageObj = null;
+            let isDragging = false;
+            let dragStart = { x: 0, y: 0 };
+            let imagePosition = { x: 0, y: 0 };
+            let imageScale = 1;
+
+            // Profile picture change functionality
+            const profilePictureInput = document.getElementById('profilePictureInput');
+            if (profilePictureInput) {
+                profilePictureInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (!file.type.startsWith('image/')) {
+                            showInAppNotification('Please select a valid image file', 'error');
+                            return;
+                        }
+
+                        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                            showInAppNotification('Image file must be less than 5MB', 'error');
+                            return;
+                        }
+
+                        currentImageFile = file;
+                        showProfilePictureCropModal(file);
+                    }
+                });
+            }
+
+            // Show profile picture crop modal
+            function showProfilePictureCropModal(file) {
+                const modal = document.getElementById('profilePictureModal');
+                cropCanvas = document.getElementById('cropCanvas');
+                cropContext = cropCanvas.getContext('2d');
+
+                // Reset canvas size
+                cropCanvas.width = 400;
+                cropCanvas.height = 400;
+
+                // Load image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imageObj = new Image();
+                    imageObj.onload = function() {
+                        // Calculate initial scale to fit image in canvas
+                        const scale = Math.min(400 / this.width, 400 / this.height);
+                        imageScale = scale;
+
+                        // Center image
+                        imagePosition.x = (400 - this.width * scale) / 2;
+                        imagePosition.y = (400 - this.height * scale) / 2;
+
+                        drawCropPreview();
+                    };
+                    imageObj.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+
+                // Show modal
+                modal.classList.add('show');
+
+                // Setup canvas event listeners
+                setupCropCanvasEvents();
+            }
+
+            // Setup canvas event listeners for cropping
+            function setupCropCanvasEvents() {
+                // Mouse events
+                cropCanvas.addEventListener('mousedown', startDrag);
+                cropCanvas.addEventListener('mousemove', drag);
+                cropCanvas.addEventListener('mouseup', endDrag);
+                cropCanvas.addEventListener('wheel', zoom);
+
+                // Touch events for mobile
+                cropCanvas.addEventListener('touchstart', handleTouch);
+                cropCanvas.addEventListener('touchmove', handleTouch);
+                cropCanvas.addEventListener('touchend', endDrag);
+            }
+
+            function startDrag(e) {
+                isDragging = true;
+                const rect = cropCanvas.getBoundingClientRect();
+                dragStart.x = (e.clientX || e.touches[0].clientX) - rect.left;
+                dragStart.y = (e.clientY || e.touches[0].clientY) - rect.top;
+            }
+
+            function drag(e) {
+                if (!isDragging || !imageObj) return;
+                e.preventDefault();
+
+                const rect = cropCanvas.getBoundingClientRect();
+                const currentX = (e.clientX || e.touches[0].clientX) - rect.left;
+                const currentY = (e.clientY || e.touches[0].clientY) - rect.top;
+
+                const deltaX = currentX - dragStart.x;
+                const deltaY = currentY - dragStart.y;
+
+                imagePosition.x += deltaX;
+                imagePosition.y += deltaY;
+
+                dragStart.x = currentX;
+                dragStart.y = currentY;
+
+                drawCropPreview();
+            }
+
+            function endDrag() {
+                isDragging = false;
+            }
+
+            function zoom(e) {
+                if (!imageObj) return;
+                e.preventDefault();
+
+                const rect = cropCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const delta = e.deltaY > 0 ? 0.95 : 1.05;
+                const newScale = Math.max(0.1, Math.min(3, imageScale * delta));
+
+                // Zoom towards mouse position
+                const scaleChange = newScale / imageScale;
+                imagePosition.x = mouseX - (mouseX - imagePosition.x) * scaleChange;
+                imagePosition.y = mouseY - (mouseY - imagePosition.y) * scaleChange;
+
+                imageScale = newScale;
+                drawCropPreview();
+            }
+
+            function handleTouch(e) {
+                e.preventDefault();
+                if (e.type === 'touchstart') {
+                    startDrag(e);
+                } else if (e.type === 'touchmove') {
+                    drag(e);
+                }
+            }
+
+            // Draw crop preview
+            function drawCropPreview() {
+                if (!imageObj || !cropContext) return;
+
+                // Clear canvas
+                cropContext.clearRect(0, 0,400, 400);
+
+                // Draw image
+                cropContext.drawImage(
+                    imageObj,
+                    imagePosition.x,
+                    imagePosition.y,
+                    imageObj.width * imageScale,
+                    imageObj.height * imageScale
+                );
+
+                // Draw crop circle overlay
+                cropContext.save();
+                cropContext.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                cropContext.fillRect(0, 0, 400, 400);
+
+                // Create circular crop area
+                cropContext.globalCompositeOperation = 'destination-out';
+                cropContext.beginPath();
+                cropContext.arc(200, 200, 180, 0, Math.PI * 2);
+                cropContext.fill();
+                cropContext.restore();
+
+                // Draw crop circle border
+                cropContext.strokeStyle = '#547bf7';
+                cropContext.lineWidth = 3;
+                cropContext.beginPath();
+                cropContext.arc(200, 200, 180, 0, Math.PI * 2);
+                cropContext.stroke();            }
+
+            // Handle modal actions
+            document.getElementById('profilePictureModalCancel').addEventListener('click', function() {
+                document.getElementById('profilePictureModal').classList.remove('show');
+                currentImageFile = null;
+                profilePictureInput.value = '';
+            });
+
+            document.getElementById('profilePictureModalClose').addEventListener('click', function() {
+                document.getElementById('profilePictureModal').classList.remove('show');
+                currentImageFile = null;
+                profilePictureInput.value = '';
+            });
+
+            document.getElementById('profilePictureModalSave').addEventListener('click', async function() {
+                if (!imageObj || !currentImageFile) return;
+
+                const saveBtn = this;
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+
+                try {
+                    // Create cropped image
+                    const croppedCanvas = document.createElement('canvas');
+                    const croppedContext = croppedCanvas.getContext('2d');
+                    croppedCanvas.width = 360;
+                    croppedCanvas.height = 360;
+
+                    // Calculate crop area (center circle has radius 180, so diameter 360)
+                    const cropRadius = 180;
+                    const centerX = 200;
+                    const centerY = 200;
+
+                    // Calculate the source rectangle that maps to the crop circle
+                    const sourceX = (centerX - cropRadius - imagePosition.x) / imageScale;
+                    const sourceY = (centerY - cropRadius - imagePosition.y) / imageScale;
+                    const sourceSize = (cropRadius * 2) / imageScale;
+
+                    // Draw cropped image
+                    croppedContext.drawImage(
+                        imageObj,
+                        sourceX,
+                        sourceY,
+                        sourceSize,
+                        sourceSize,
+                        0,
+                        0,
+                        360,
+                        360
+                    );
+
+                    // Convert to blob
+                    croppedCanvas.toBlob(async function(blob) {
+                        // Create form data
+                        const formData = new FormData();
+                        formData.append('profile_picture', blob, 'profile.jpg');
+
+                        // Upload to server
+                        const response = await fetch('/api/upload-profile-picture', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            // Update profile pictures in UI
+                            updateProfilePictureInUI(result.profile_picture_url);
+
+                            // Close modal
+                            document.getElementById('profilePictureModal').classList.remove('show');
+                            currentImageFile = null;
+                            profilePictureInput.value = '';
+
+                            showInAppNotification('Profile picture updated successfully!', 'success');
+                        } else {
+                            showInAppNotification('Failed to upload profile picture: ' + (result.error || 'Unknown error'), 'error');
+                        }
+                    }, 'image/jpeg', 0.9);
+
+                } catch (error) {
+                    console.error('Profile picture upload error:', error);
+                    showInAppNotification('Failed to upload profile picture. Please try again.', 'error');
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Profile Picture';
+                }
+            });
+
+            // Update profile picture in UI
+            function updateProfilePictureInUI(imageUrl) {
+                // Update main profile picture
+                const currentProfilePicture = document.getElementById('currentProfilePicture');
+                if (currentProfilePicture) {
+                    currentProfilePicture.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                }
+
+                // Update sidebar profile picture
+                const sidebarProfilePicture = document.getElementById('sidebarProfilePicture');
+                if (sidebarProfilePicture) {
+                    sidebarProfilePicture.innerHTML = `<img src="${imageUrl}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                }
+            }
+
+
+
+            // Function to update project counter
+            function updateProjectCounter() {
+                fetch('/api/get-user-projects')
+                    .then(response => response.json())
+                    .then(data => {
+                        const projectCounter = document.getElementById('projectCounter');
+                        if (projectCounter && data.success && data.projects) {
+                            projectCounter.textContent = data.projects.length;
+                        } else if (projectCounter) {
+                            projectCounter.textContent = '0';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading project count:', error);
+                        const projectCounter = document.getElementById('projectCounter');
+                        if (projectCounter) {
+                            projectCounter.textContent = '0';
+                        }
+                    });
+            }
+
+            // Function to update team menu name dynamically
+            function updateTeamMenuName() {
+                fetch('/api/get-team-name')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Team name API response:', data);
+                        const teamMenuText = document.getElementById('teamMenuText');
+                        const teamMenuItem = document.getElementById('teamMenuItem');
+
+                        if (data && data.success && data.team_name) {
+                            if (teamMenuText) {
+                                teamMenuText.textContent = data.team_name;
+                                teamMenuText.title = data.team_name; // Show full name on hover
+                                console.log('Team menu updated with name:', data.team_name);
+                            }
+                            if (teamMenuItem) {
+                                teamMenuItem.style.display = 'flex';
+                            }
+                        } else {
+                            console.log('No team name found in response');
+                            // No team found, hide the team menu item
+                            if (teamMenuItem) {
+                                teamMenuItem.style.display = 'none';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Could not load team name:', error);
+                        // On error, hide team menu as fallback
+                        const teamMenuItem = document.getElementById('teamMenuItem');
+                        if (teamMenuItem) {
+                            teamMenuItem.style.display = 'none';
+                        }
+                    });
+            }
+
+            // Function to intelligently handle team name display
+            function updateTeamMenuNameWithTeamName(teamName) {
+                const teamMenuText = document.getElementById('teamMenuText');
+                const teamMenuItem = document.getElementById('teamMenuItem');
+
+                if (teamName && teamMenuText) {
+                    // Set the full name
+                    teamMenuText.textContent = teamName;
+                    teamMenuText.title = teamName; // Always show full name on hover
+
+                    if (teamMenuItem) {
+                        teamMenuItem.style.display = 'flex';
+                    }
+
+                    console.log('Team menu text updated to:', teamName);
+                }
+            }
+
+
+
+            // Add beforeunload event to warn about unsaved changes
+            window.addEventListener('beforeunload', function(e) {
+                if (hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                    return '';
+                }
+            });
+
+            // Intercept navigation links to show custom warning
+            function setupNavigationWarning() {
+                const navigationLinks = document.querySelectorAll('a[href]:not([href^="#"]):not([href^="javascript:"]), .btn[href]');
+
+                navigationLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        if (hasUnsavedChanges && !link.classList.contains('settings-save-btn')) {
+                            e.preventDefault();
+                            showUnsavedChangesModal(() => {
+                                // User confirmed to leave
+                                hasUnsavedChanges = false;
+                                window.location.href = link.href;
+                            });
+                        }
+                    });
+                });
+            }
+
+            // Function to show unsaved changes modal
+            function showUnsavedChangesModal(callback) {
+                const modal = document.getElementById('unsavedChangesModal');
+                const cancelBtn = document.getElementById('unsavedChangesModalCancel');
+                const confirmBtn = document.getElementById('unsavedChangesModalConfirm');
+
+                // Show modal
+                modal.classList.add('show');
+
+                // Handle cancel
+                const handleCancel = () => {
+                    modal.classList.remove('show');
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                };
+
+                // Handle confirm
+                const handleConfirm = () => {
+                    modal.classList.remove('show');
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                    callback();
+                };
+
+                // Attach event listeners
+                cancelBtn.addEventListener('click', handleCancel);
+                confirmBtn.addEventListener('click', handleConfirm);
+
+                // Close modal on overlay click
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        handleCancel();
+                    }
+                });
+
+                // Handle escape key
+                const handleEscape = (e) => {
+                    if (e.key === 'Escape') {
+                        handleCancel();
+                        document.removeEventListener('keydown', handleEscape);
+                    }
+                };
+                document.addEventListener('keydown', handleEscape);
+            }
+
+            // Setup navigation warning after page loads
+            setTimeout(setupNavigationWarning, 1000);
+
+            // Team-related functions
+            window.showLeaveTeamWarning = function() {
+                const modal = document.getElementById('leaveTeamModal');
+                modal.classList.add('show');
+
+                const cancelBtn = document.getElementById('leaveTeamModalCancel');
+                const confirmBtn = document.getElementById('leaveTeamModalConfirm');
+
+                const handleCancel = () => {
+                    modal.classList.remove('show');
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                };
+
+                const handleConfirm = () => {
+                    modal.classList.remove('show');
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                    leaveTeamAndCreateNew();
+                };
+
+                cancelBtn.addEventListener('click', handleCancel);
+                confirmBtn.addEventListener('click', handleConfirm);
+
+                // Close modal on overlay click
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        handleCancel();
+                    }
+                });
+            };
+
+            window.showCreateTeamModal = function() {
+                // Show the team setup modal on the settings page
+                const modal = document.getElementById('teamSetupModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    document.getElementById('teamNameSettings').focus();
+                }
+            };
+
+            function leaveTeamAndCreateNew() {
+                fetch('/api/leave-team', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showInAppNotification('Left team successfully. You can now create a new team.', 'success');
+                        // Reload the page to update the UI
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showInAppNotification('Error leaving team: ' + (data.error || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error leaving team:', error);
+                    showInAppNotification('Failed to leave team. Please try again.', 'error');
+                });
+            }
+
+            // Team setup modal functionality for settings page
+            const teamSetupModalSettings = document.getElementById('teamSetupModal');
+            const closeTeamSetupSettings = document.getElementById('closeTeamSetupSettings');
+            const cancelTeamSetupSettings = document.getElementById('cancelTeamSetupSettings');
+            const teamSetupFormSettings = document.getElementById('teamSetupFormSettings');
+
+            if (closeTeamSetupSettings) {
+                closeTeamSetupSettings.addEventListener('click', () => {
+                    teamSetupModalSettings.style.display = 'none';
+                });
+            }
+
+            if (cancelTeamSetupSettings) {
+                cancelTeamSetupSettings.addEventListener('click', () => {
+                    teamSetupModalSettings.style.display = 'none';
+                });
+            }
+
+            // Close modal when clicking outside
+            if (teamSetupModalSettings) {
+                teamSetupModalSettings.addEventListener('click', (e) => {
+                    if (e.target === teamSetupModalSettings) {
+                        teamSetupModalSettings.style.display = 'none';
+                    }
+                });
+            }
+
+            if (teamSetupFormSettings) {
+                teamSetupFormSettings.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const formData = new FormData(teamSetupFormSettings);
+                    const teamData = {
+                        teamName: formData.get('teamName'),
+                        teamDescription: '',
+                        teamSize: formData.get('teamSize')
+                    };
+
+                    try {
+                        const response = await fetch('/api/setup-team', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(teamData)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            teamSetupModalSettings.style.display = 'none';
+                            showInAppNotification('Team created successfully!', 'success');
+
+                            // Update the team section immediately
+                            const teamContent = document.getElementById('teamContent');
+                            const teamMemberContent = document.getElementById('teamMemberContent');
+                            const noTeamContent = document.getElementById('noTeamContent');
+                            const teamNameDisplay = document.getElementById('teamNameDisplay');
+                            const manageTeamBtn = document.getElementById('manageTeamBtn');
+                            const teamSection = document.getElementById('teamSection');
+
+                            if (teamContent && teamMemberContent && noTeamContent && teamNameDisplay) {
+                                teamNameDisplay.textContent = teamData.teamName;
+                                teamMemberContent.style.display = 'block';
+                                noTeamContent.style.display = 'none';
+                                teamSection.style.display = 'block';
+
+                                if (manageTeamBtn) {
+                                    manageTeamBtn.style.display = 'inline-block';
+                                }
+                            }
+
+                            // Update team menu in sidebar
+                            updateTeamMenuNameWithTeamName(teamData.teamName);
+
+                            // Clear form
+                            teamSetupFormSettings.reset();
+                        } else {
+                            showInAppNotification('Failed to create team: ' + (result.error || 'Unknown error'), 'error');
+                        }
+                    } catch (error) {
+                        console.error('Team setup error:', error);
+                        showInAppNotification('Failed to create team. Please try again.', 'error');
+                    }
+                });
+            }
+
+             // Function to apply invitation token
+             window.applyInvitationToken = function() {
+                const invitationTokenInput = document.getElementById('invitationTokenInput');
+                const invitationToken = invitationTokenInput.value;
+
+                if (!invitationToken) {
+                    showInAppNotification('Please enter an invitation link.', 'warning');
+                    return;
+                }
+
+                fetch('/api/apply-invitation-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: invitationToken })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showInAppNotification('Joined team successfully!', 'success');
+                        // Reload the page to update the UI
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showInAppNotification('Error: ' + (data.error || 'Invalid invitation link.'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error applying invitation token:', error);
+                    showInAppNotification('Failed to apply invitation. Please try again.', 'error');
+                });
+            };
+        });
+    </script>
+</body>
+</html>
